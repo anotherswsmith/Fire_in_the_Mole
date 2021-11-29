@@ -9,9 +9,10 @@ se <- function(x) sd(x, na.rm=T)/sqrt(length(x))
 
 ##### IMPORT DATASET called 'Ghana.belowground' ##############
 
-df <- read.csv("/Users/anotherswsmith/Documents/AfricanBioServices/Master projects/Joana Awuah Adofo/Ghana.belowground2.csv", sep=",",header=TRUE)
+setwd("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/")
+list.files(path = ".")
+df <- read.csv("Ghana.belowground_correct.csv", sep=",",header=TRUE)
 df$Treatment <- as.factor(df$Treatment)
-df$Treatment
 #Levels: Old late, Recent early, Recent late, Unburnt
 
 # Reorder fire histories
@@ -34,33 +35,32 @@ df$Treatment <- factor(df$Treatment, levels(df$Treatment)[c(2,3,1,4)])
 #df2$Treatment
 
 # Make depth-plot # Using soil C stock
-gp <- ggplot(df2, aes(x=Depth, y=SOC, group=Treatment))
-pd <- position_dodge(width=0.1)  #keeps error bars from overlapping
+#gp <- ggplot(df2, aes(x=Depth, y=SOC, group=Treatment))
+#pd <- position_dodge(width=0.1)  #keeps error bars from overlapping
 
-plt <- gp + geom_line(aes(linetype=Treatment,color=Treatment),
-                      size=1.1, position=pd) + 
-  geom_point(aes(color=Treatment), size=4, position=pd) + 
-  geom_errorbar(aes(ymax=SOC+SE, ymin=SOC-SE, color=Treatment), width=.1, size=1.1, position=pd) +
-  theme_bw() + scale_colour_grey() +
-  theme(plot.background = element_blank()
+#plt <- gp + geom_line(aes(linetype=Treatment,color=Treatment),
+#                      size=1.1, position=pd) + 
+#  geom_point(aes(color=Treatment), size=4, position=pd) + 
+#  geom_errorbar(aes(ymax=SOC+SE, ymin=SOC-SE, color=Treatment), width=.1, size=1.1, position=pd) +
+#  theme_bw() + scale_colour_grey() +
+#  theme(plot.background = element_blank()
         #,panel.grid.major = element_blank()
-        ,panel.grid.minor = element_blank()
-        ,panel.border = element_blank()
-        ,panel.grid.major.x = element_line( size=0.01, color="gray" )
-        ,panel.grid.major.y = element_blank() 
-        ,axis.text=element_text(size=12)
-        ,axis.title=element_text(size=14)
-        ,legend.text=element_text(size=12)) +
-  theme(axis.line = element_line(color = 'black')) +
-  coord_flip()+
-  scale_y_continuous(position = "top")+
-  ylab(expression(paste("Soil C ( kg ",m^-2,")")))+
-  xlab("Depth (cm)")+
-  theme(legend.position = "bottom")
-plt
+ #       ,panel.grid.minor = element_blank()
+ #       ,panel.border = element_blank()
+ #       ,panel.grid.major.x = element_line( size=0.01, color="gray" )
+ #       ,panel.grid.major.y = element_blank() 
+ #       ,axis.text=element_text(size=12)
+ #       ,axis.title=element_text(size=14)
+ #       ,legend.text=element_text(size=12)) +
+ # theme(axis.line = element_line(color = 'black')) +
+#  coord_flip()+
+#  scale_y_continuous(position = "top")+
+#  ylab(expression(paste("Soil C ( kg ",m^-2,")")))+
+#  xlab("Depth (cm)")+
+#  theme(legend.position = "bottom")
+#plt
 ################################################################
 # Using soil C density
-
 ################################################################
 
 df2 <- aggregate(cbind(SOC=df$C.density), list(Depth=df$Horizon, Treatment=df$Treatment), FUN=mean, na.rm=T)
@@ -94,21 +94,29 @@ pd <- position_dodge(width=0.1)  #keeps error bars from overlapping
 # This works - how to store it?
 cat(paste0('"', paste(levels(as.factor(df2$pt.col)), collapse="\", \""), '"'))
 colourset<-paste(levels(as.factor(df2$pt.col))) # Leveling does not relate to Treatment!
+df2
 
 gp <- ggplot(df2, aes(x=Depth, y=SOC, fill=Treatment, colour=Treatment))
+gp <- gp +geom_segment(x=-1.2, xend=-1.2, y=0,yend=1.9, size = 30, colour="grey95", alpha=.1,lineend = "butt", show.legend = F)
+gp <- gp +geom_segment(x=-5.5, xend=-5.5, y=0,yend=1.9, size = 55, colour="grey95", alpha=.5,lineend = "butt", show.legend = F)
+gp <- gp +geom_segment(x=-10.5, xend=-10.5, y=0,yend=1.9, size = 55, colour="grey95", alpha=.5,lineend = "butt", show.legend = F)
+gp <- gp +geom_segment(x=-15.5, xend=-15.5, y=0,yend=1.9, size = 55, colour="grey95", alpha=.5,lineend = "butt", show.legend = F)
+
 gp <- gp + geom_line(stat="identity",size=1.1, position=pd) 
 gp <- gp+geom_errorbar(stat="identity",aes(ymax=SOC+SE, ymin=SOC-SE), 
                   width=.1, size=1.1,position=pd) 
 gp <- gp+ geom_point(stat="identity",aes(colour=Treatment,shape=Treatment),
                      size=4, stroke = 1.3, position=pd)
-gp <- gp+scale_color_manual(values=c("light green","black", "tan4","dark green")) # This does not when when df2$pt.col
-gp <- gp+scale_fill_manual(values=c("light green", "white", "white","dark green") ) 
-gp <- gp+scale_shape_manual(values=c(21,21,22,22)) 
-gp <- gp+geom_text(aes(size=12,label=df2$Pval, fontface="bold"),
-           check_overlap=T,hjust=-1, vjust=1,show.legend = F)
+gp <- gp+scale_color_manual("Burn history",values=c("light green","black", "tan4","dark green")) # This does not when when df2$pt.col
+gp <- gp+scale_fill_manual("Burn history",values=c("light green", "white", "white","dark green") ) 
+gp <- gp+scale_shape_manual("Burn history",values=c(21,21,22,22)) 
+#gp <- gp+geom_text(aes(size=12,label=df2$Pval, fontface="bold"),
+#           check_overlap=T,hjust=-1, vjust=1,show.legend = F)
 gp <- gp+ylab(expression(paste("Soil C ( kg ",m^-2,")")))+xlab("Depth (cm)")
-gp <- gp+scale_y_continuous(position = "top")+ scale_x_reverse(position = "bottom")
+gp <- gp+scale_x_reverse(position = "bottom",limits=c(18,0))
+gp <- gp+scale_y_continuous(limits=c(0,1.9),breaks=c(0,.5,1,1.5),position = "right")
 gp <- gp+coord_flip()
+
 gp<- gp+ theme_bw() +
   theme(plot.background = element_blank()
         #,panel.grid.major = element_blank()
@@ -136,7 +144,7 @@ gp
 #tbl <- tableGrob(df2, rows=NULL, theme=tt)  # make the table
 
 # Export - remember to set working directory
-ggsave("/Users/anotherswsmith/Documents/AfricanBioServices/Master projects/Joana Awuah Adofo/Soil.C.density.jpeg", width= 15, height = 20,units ="cm",
+ggsave("Soil.C.density_new.jpeg", width= 15, height = 20,units ="cm",
        dpi = 400, limitsize = TRUE)
 
 ###############################################################################
