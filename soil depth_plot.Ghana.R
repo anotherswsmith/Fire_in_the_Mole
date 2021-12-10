@@ -1,47 +1,50 @@
-### LIBRARY  #############
+#########################################################################################################################
+#### Ghana: savannah fire history - C storage - PLOTS ####
+#Stuart Smith
+#17/6/2017 
+# Libraries
 rm(list=ls())
 library(readr)
 require(dplyr)
 require(ggplot2)
 require(reshape2)
 #standard error
-se <- function(x) sd(x, na.rm=T)/sqrt(length(x))
+#se <- function(x) sd(x, na.rm=T)/sqrt(length(x))
+#########################################################################################################################
 
 ##### IMPORT DATASET called 'Ghana.belowground' ##############
-
 setwd("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/")
 list.files(path = ".")
-df <- read.csv("Ghana.belowground_correct.csv", sep=",",header=TRUE)
-df$Treatment <- as.factor(df$Treatment)
+df <- read.csv("Fire_in_the_Mole/Ghana.belowground_correct.csv", sep=",",header=TRUE)
+df$Burn_history <- as.factor(df$Burn_history )
 #Levels: Old late, Recent early, Recent late, Unburnt
 
 # Reorder fire histories
 # (1) Recent early, (2) Recent late, (3) Old late, (4) Unburnt
-df$Treatment <- factor(df$Treatment, levels(df$Treatment)[c(2,3,1,4)])
+df$Burn_history  <- factor(df$Burn_history , levels(df$Burn_history )[c(2,3,1,4)])
 
 #df$Horizon <- as.factor(df$Horizon)
 # adding covariates
 #productivity  <- read.csv("M:/Anders L Kolstad/systherb data/exported cvs/productivity_index_sustherbSites.csv")
 #CN_data <- within(CN_data, PI <- productivity$PI[match(CN_data$locationID, productivity$lokalitetid)])
 
-
 ################################################
 # Using soil C stocks (SOC)
 ################################################
 
 #names(df)
-#df2 <- aggregate(cbind(SOC=df$SOC), list(Depth=df$Horizon, Treatment=df$Treatment), FUN=mean, na.rm=T)
-#df2$SE <- aggregate(cbind(SOC=df$SOC), list(Depth=df$Horizon, Treatment=df$Treatment), FUN=se)[,3]
-#df2$Treatment
+#df2 <- aggregate(cbind(SOC=df$SOC), list(Depth=df$Horizon, Burn_history =df$Burn_history ), FUN=mean, na.rm=T)
+#df2$SE <- aggregate(cbind(SOC=df$SOC), list(Depth=df$Horizon, Burn_history =df$Burn_history ), FUN=se)[,3]
+#df2$Burn_history 
 
 # Make depth-plot # Using soil C stock
-#gp <- ggplot(df2, aes(x=Depth, y=SOC, group=Treatment))
+#gp <- ggplot(df2, aes(x=Depth, y=SOC, group=Burn_history ))
 #pd <- position_dodge(width=0.1)  #keeps error bars from overlapping
 
-#plt <- gp + geom_line(aes(linetype=Treatment,color=Treatment),
+#plt <- gp + geom_line(aes(linetype=Burn_history ,color=Burn_history ),
 #                      size=1.1, position=pd) + 
-#  geom_point(aes(color=Treatment), size=4, position=pd) + 
-#  geom_errorbar(aes(ymax=SOC+SE, ymin=SOC-SE, color=Treatment), width=.1, size=1.1, position=pd) +
+#  geom_point(aes(color=Burn_history ), size=4, position=pd) + 
+#  geom_errorbar(aes(ymax=SOC+SE, ymin=SOC-SE, color=Burn_history ), width=.1, size=1.1, position=pd) +
 #  theme_bw() + scale_colour_grey() +
 #  theme(plot.background = element_blank()
         #,panel.grid.major = element_blank()
@@ -60,11 +63,11 @@ df$Treatment <- factor(df$Treatment, levels(df$Treatment)[c(2,3,1,4)])
 #  theme(legend.position = "bottom")
 #plt
 ################################################################
-# Using soil C density
+#### Using soil C density ####
 ################################################################
 
-df2 <- aggregate(cbind(SOC=df$C.density), list(Depth=df$Horizon, Treatment=df$Treatment), FUN=mean, na.rm=T)
-df2$SE <- aggregate(cbind(SOC=df$C.density), list(Depth=df$Horizon, Treatment=df$Treatment), FUN=se)[,3]
+df2 <- aggregate(cbind(SOC=df$C.density), list(Depth=df$Horizon, Burn_history =df$Burn_history ), FUN=mean, na.rm=T)
+df2$SE <- aggregate(cbind(SOC=df$C.density), list(Depth=df$Horizon, Burn_history =df$Burn_history ), FUN=sd)[,3]
 as.factor(df2$SOC)
 df2$Pval<-c("ab","b","b","b",
             "a","a","a","a",
@@ -75,45 +78,48 @@ df2
 #65.78289/69.09668
 
 # Colours by fire history
-df2$Treatment
+df2$Burn_history 
 color_pallete_function <- colorRampPalette(
   colors = c("light green","black", "tan4", "dark green"),
   space = "Lab" 
 )
 
-num_colors <- nlevels(df2$Treatment)
+num_colors <- nlevels(df2$Burn_history )
 num_colors
 diamond_color_colors <- color_pallete_function(num_colors)
-df2$pt.col<-diamond_color_colors[df2$Treatment]
+df2$pt.col<-diamond_color_colors[df2$Burn_history ]
 levels(as.factor(df2$pt.col))
-
 
 # Make depth-plot # Using soil C density
 pd <- position_dodge(width=0.1)  #keeps error bars from overlapping
 
 # This works - how to store it?
 cat(paste0('"', paste(levels(as.factor(df2$pt.col)), collapse="\", \""), '"'))
-colourset<-paste(levels(as.factor(df2$pt.col))) # Leveling does not relate to Treatment!
+colourset<-paste(levels(as.factor(df2$pt.col))) # Leveling does not relate to Burn_history !
 df2
 
-gp <- ggplot(df2, aes(x=Depth, y=SOC, fill=Treatment, colour=Treatment))
-gp <- gp +geom_segment(x=-1.2, xend=-1.2, y=0,yend=1.9, size = 30, colour="grey95", alpha=.1,lineend = "butt", show.legend = F)
-gp <- gp +geom_segment(x=-5.5, xend=-5.5, y=0,yend=1.9, size = 55, colour="grey95", alpha=.5,lineend = "butt", show.legend = F)
-gp <- gp +geom_segment(x=-10.5, xend=-10.5, y=0,yend=1.9, size = 55, colour="grey95", alpha=.5,lineend = "butt", show.legend = F)
-gp <- gp +geom_segment(x=-15.5, xend=-15.5, y=0,yend=1.9, size = 55, colour="grey95", alpha=.5,lineend = "butt", show.legend = F)
+df2$fDepth<-as.factor(df2$Depth)
+levels(df2$fDepth)<-c("1","4.5","9.5","14.5")
+df2$Depth<-as.numeric(as.character(df2$fDepth))
+
+gp <- ggplot(df2, aes(x=Depth, y=SOC, fill=Burn_history , colour=Burn_history ))
+gp <- gp +geom_segment(x=-1.2, xend=-1.2, y=0,yend=1.9, size = 28, colour="grey96", alpha=.1,lineend = "butt", show.legend = F)
+gp <- gp +geom_segment(x=-4.85, xend=-4.85, y=0,yend=1.9, size = 56, colour="grey96", alpha=.5,lineend = "butt", show.legend = F)
+gp <- gp +geom_segment(x=-9.85, xend=-9.85, y=0,yend=1.9, size = 56, colour="grey96", alpha=.5,lineend = "butt", show.legend = F)
+gp <- gp +geom_segment(x=-14.85, xend=-14.85, y=0,yend=1.9, size = 56, colour="grey96", alpha=.5,lineend = "butt", show.legend = F)
 
 gp <- gp + geom_line(stat="identity",size=1.1, position=pd) 
 gp <- gp+geom_errorbar(stat="identity",aes(ymax=SOC+SE, ymin=SOC-SE), 
                   width=.1, size=1.1,position=pd) 
-gp <- gp+ geom_point(stat="identity",aes(colour=Treatment,shape=Treatment),
+gp <- gp+ geom_point(stat="identity",aes(colour=Burn_history ,shape=Burn_history ),
                      size=4, stroke = 1.3, position=pd)
-gp <- gp+scale_color_manual("Burn history",values=c("light green","black", "tan4","dark green")) # This does not when when df2$pt.col
-gp <- gp+scale_fill_manual("Burn history",values=c("light green", "white", "white","dark green") ) 
-gp <- gp+scale_shape_manual("Burn history",values=c(21,21,22,22)) 
+gp <- gp+scale_color_manual("Burn season & history",values=c("light green","black", "tan4","dark green")) # This does not when when df2$pt.col
+gp <- gp+scale_fill_manual("Burn season & history",values=c("light green", "white", "white","dark green") ) 
+gp <- gp+scale_shape_manual("Burn season & history",values=c(21,21,22,22)) 
 #gp <- gp+geom_text(aes(size=12,label=df2$Pval, fontface="bold"),
 #           check_overlap=T,hjust=-1, vjust=1,show.legend = F)
-gp <- gp+ylab(expression(paste("Soil C ( kg ",m^-2,")")))+xlab("Depth (cm)")
-gp <- gp+scale_x_reverse(position = "bottom",limits=c(18,0))
+gp <- gp+ylab(expression(paste("Soil carbon ( kg ",m^-2,")")))+xlab("Depth (cm)")
+gp <- gp+scale_x_reverse(position = "bottom",limits=c(17,0))
 gp <- gp+scale_y_continuous(limits=c(0,1.9),breaks=c(0,.5,1,1.5),position = "right")
 gp <- gp+coord_flip()
 
@@ -131,12 +137,10 @@ gp<- gp+ theme_bw() +
   theme(legend.position = "bottom")
 gp
 
-
 # make a table of means
 # rearrange rows so they match the plot lay-out
 #df2 <- df2[c(7,3,8,4,5,1,6,2),]
 #df2$n <- c(15,15,15,15,15,15,14,14)
-
 
 #require(gridExtra)
 #tt <- ttheme_default(colhead=list(fg_params = list(parse=TRUE)))
@@ -144,57 +148,60 @@ gp
 #tbl <- tableGrob(df2, rows=NULL, theme=tt)  # make the table
 
 # Export - remember to set working directory
-ggsave("Soil.C.density_new.jpeg", width= 15, height = 20,units ="cm",
+setwd("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/")
+ggsave("Fire_in_the_Mole/Figures/Soil.C.density_new.jpeg", width= 17, height = 20,units ="cm",
        dpi = 400, limitsize = TRUE)
 
 ###############################################################################
 # Aboveground C pool - stripchart panel
-se<- function(x) sqrt(var(x,na.rm=TRUE)/length(na.omit(x)))
 ###############################################################################
 
 # Import data - above C storage data for Ghana
-GhanaCabove<-read.csv("/Users/anotherswsmith/Documents/AfricanBioServices/Master projects/Joana Awuah Adofo/Ghana.aboveground.old.csv", sep=",",header=TRUE)
+GhanaCabove<-read.csv("Fire_in_the_Mole/Ghana.aboveground.copy.csv", sep=",",header=TRUE)
 
 dim(GhanaCabove) # 140 rows # 4 columns
 str(GhanaCabove)
 head(GhanaCabove) # NAs
 names(GhanaCabove)
 
+summary(is.na(GhanaCabove))
+
 # Reorder factors
-GhanaCabove$Treatment <- factor(GhanaCabove$Treatment, levels(GhanaCabove$Treatment)[c(2,3,1,4)])
-levels(GhanaCabove$Treatment)
+GhanaCabove$Burn_history<-as.factor(GhanaCabove$Burn_history)
+GhanaCabove$Burn_history<- factor(GhanaCabove$Burn_history , levels(GhanaCabove$Burn_history)[c(2,3,1,4)])
+levels(GhanaCabove$Burn_history)
 # Seperate out Trees, Shrubs, Dead wood + litter and Herb veg
-levels(GhanaCabove$Pool)
+GhanaCabove$Pool<-as.factor(GhanaCabove$Pool)
 GhanaCaboveTree<-GhanaCabove[GhanaCabove$Pool=="Tree",]
 GhanaCaboveShrub<-GhanaCabove[GhanaCabove$Pool=="Shrub",]
-GhanaCaboveDeadwood<-GhanaCabove[GhanaCabove$Pool=="deadwood",]
-GhanaCabovelitter<-GhanaCabove[GhanaCabove$Pool=="litter",]
+GhanaCaboveDeadwood<-GhanaCabove[GhanaCabove$Pool=="Deadwood",]
+GhanaCabovelitter<-GhanaCabove[GhanaCabove$Pool=="Litter",]
 GhanaCaboveHerbveg<-GhanaCabove[GhanaCabove$Pool=="Herb.veg",]
 
 #Plot means next to one another - similar colour to graph 4 - grey scale for fire histories
 # Graph option - all pools next to one another - but then cannot see difference
 #Tree
-GhanaCaboveTreeX<-aggregate(GhanaCaboveTree$C.stock.kg.m2,by=list(Treatment=GhanaCaboveTree$Treatment),na.rm=T,mean)
-GhanaCaboveTreeSE<-aggregate(GhanaCaboveTree$C.stock.kg.m2,by=list(Treatment=GhanaCaboveTree$Treatment),se)
+GhanaCaboveTreeX<-aggregate(GhanaCaboveTree$C.stock.kg.m2,by=list(Burn_history =GhanaCaboveTree$Burn_history ),na.rm=T,mean)
+GhanaCaboveTreeSE<-aggregate(GhanaCaboveTree$C.stock.kg.m2,by=list(Burn_history =GhanaCaboveTree$Burn_history ),sd)
 #Shrub
-GhanaCaboveShrubX<-aggregate(GhanaCaboveShrub$C.stock.kg.m2,by=list(Treatment=GhanaCaboveShrub$Treatment),na.rm=T,mean)
-GhanaCaboveShrubSE<-aggregate(GhanaCaboveShrub$C.stock.kg.m2,by=list(Treatment=GhanaCaboveShrub$Treatment),se)
+GhanaCaboveShrubX<-aggregate(GhanaCaboveShrub$C.stock.kg.m2,by=list(Burn_history =GhanaCaboveShrub$Burn_history ),na.rm=T,mean)
+GhanaCaboveShrubSE<-aggregate(GhanaCaboveShrub$C.stock.kg.m2,by=list(Burn_history =GhanaCaboveShrub$Burn_history ),sd)
 #Deadwood
-GhanaCabovelitterX<-aggregate(GhanaCabovelitter$C.stock.kg.m2,by=list(Treatment=GhanaCabovelitter$Treatment),na.rm=T,mean)
-GhanaCabovelitterSE<-aggregate(GhanaCabovelitter$C.stock.kg.m2,by=list(Treatment=GhanaCabovelitter$Treatment),se)
+GhanaCabovelitterX<-aggregate(GhanaCabovelitter$C.stock.kg.m2,by=list(Burn_history =GhanaCabovelitter$Burn_history ),na.rm=T,mean)
+GhanaCabovelitterSE<-aggregate(GhanaCabovelitter$C.stock.kg.m2,by=list(Burn_history =GhanaCabovelitter$Burn_history ),sd)
 #litter
-GhanaCaboveDeadwoodX<-aggregate(GhanaCaboveDeadwood$C.stock.kg.m2,by=list(Treatment=GhanaCaboveDeadwood$Treatment),na.rm=T,mean)
-GhanaCaboveDeadwoodSE<-aggregate(GhanaCaboveDeadwood$C.stock.kg.m2,by=list(Treatment=GhanaCaboveDeadwood$Treatment),se)
+GhanaCaboveDeadwoodX<-aggregate(GhanaCaboveDeadwood$C.stock.kg.m2,by=list(Burn_history =GhanaCaboveDeadwood$Burn_history ),na.rm=T,mean)
+GhanaCaboveDeadwoodSE<-aggregate(GhanaCaboveDeadwood$C.stock.kg.m2,by=list(Burn_history =GhanaCaboveDeadwood$Burn_history ),sd)
 #Herbveg
-GhanaCaboveHerbvegX<-aggregate(GhanaCaboveHerbveg$C.stock.kg.m2,by=list(Treatment=GhanaCaboveHerbveg$Treatment),na.rm=T,mean)
-GhanaCaboveHerbvegSE<-aggregate(GhanaCaboveHerbveg$C.stock.kg.m2,by=list(Treatment=GhanaCaboveHerbveg$Treatment),se)
+GhanaCaboveHerbvegX<-aggregate(GhanaCaboveHerbveg$C.stock.kg.m2,by=list(Burn_history =GhanaCaboveHerbveg$Burn_history ),na.rm=T,mean)
+GhanaCaboveHerbvegSE<-aggregate(GhanaCaboveHerbveg$C.stock.kg.m2,by=list(Burn_history =GhanaCaboveHerbveg$Burn_history ),sd)
 
 # Produce a graphic file for the image file
 #filename <- paste0("/Users/anotherswsmith/Documents/AfricanBioServices/Master projects/Joana Awuah Adofo/", "Aboveground.C.graph1", "_",Sys.Date(), ".jpeg" )
 #jpeg (filename, width=20, height=10, res=400, unit="cm")
 # Graph parameters
 #par(mfrow=c(2,3),mar=c(5,4,2,2), xpd =F, yaxs ="r", xaxs = "r")
-#stripchart(C.stock.kg.m2~Treatment,method ="jitter", data=GhanaCaboveTree,
+#stripchart(C.stock.kg.m2~Burn_history ,method ="jitter", data=GhanaCaboveTree,
 #           axes=F,mgp=c(2,1,0), bg="white", col="white",
 #           ylim=c(0,3.5), xlim=c(.5,4.5), cex=1.75,cex.lab=1.25,vertical=T,
 #           pch=c(21),
@@ -240,28 +247,28 @@ GhanaCaboveHerbvegSE<-aggregate(GhanaCaboveHerbveg$C.stock.kg.m2,by=list(Treatme
 # Ensure fire histories are ordered correctly
 # (1) Recent early, (2) Recent late, (3) Old late, (4) Unburnt
 # Reorder main data
-#GhanaCaboveTree$Treatment <- factor(GhanaCaboveTree$Treatment, levels(GhanaCaboveTree$Treatment)[c(2,1,3,4)])
-#GhanaCaboveShrub$Treatment <- factor(GhanaCaboveShrub$Treatment, levels(GhanaCaboveShrub$Treatment)[c(2,1,3,4)])
-#GhanaCaboveHerbveg$Treatment <- factor(GhanaCaboveHerbveg$Treatment, levels(GhanaCaboveHerbveg$Treatment)[c(2,1,3,4)])
-#GhanaCaboveDeadwood$Treatment <- factor(GhanaCaboveDeadwood$Treatment, levels(GhanaCaboveDeadwood$Treatment)[c(2,1,3,4)])
-#GhanaCabovelitter$Treatment <- factor(GhanaCabovelitter$Treatment, levels(GhanaCabovelitter$Treatment)[c(2,1,3,4)])
+#GhanaCaboveTree$Burn_history  <- factor(GhanaCaboveTree$Burn_history , levels(GhanaCaboveTree$Burn_history )[c(2,1,3,4)])
+#GhanaCaboveShrub$Burn_history  <- factor(GhanaCaboveShrub$Burn_history , levels(GhanaCaboveShrub$Burn_history )[c(2,1,3,4)])
+#GhanaCaboveHerbveg$Burn_history  <- factor(GhanaCaboveHerbveg$Burn_history , levels(GhanaCaboveHerbveg$Burn_history )[c(2,1,3,4)])
+#GhanaCaboveDeadwood$Burn_history  <- factor(GhanaCaboveDeadwood$Burn_history , levels(GhanaCaboveDeadwood$Burn_history )[c(2,1,3,4)])
+#GhanaCabovelitter$Burn_history  <- factor(GhanaCabovelitter$Burn_history , levels(GhanaCabovelitter$Burn_history )[c(2,1,3,4)])
 
 # Reorder mean
-#GhanaCaboveTreeX$Treatment <- factor(GhanaCaboveTreeX$Treatment, levels(GhanaCaboveTreeX$Treatment)[c(2,1,3,4)])
-#GhanaCaboveShrubX$Treatment <- factor(GhanaCaboveShrubX$Treatment, levels(GhanaCaboveShrubX$Treatment)[c(2,1,3,4)])
-#GhanaCaboveHerbvegX$Treatment <- factor(GhanaCaboveHerbvegX$Treatment, levels(GhanaCaboveHerbvegX$Treatment)[c(2,1,3,4)])
-#GhanaCaboveDeadwoodX$Treatment <- factor(GhanaCaboveDeadwoodX$Treatment, levels(GhanaCaboveDeadwoodX$Treatment)[c(2,1,3,4)])
-#GhanaCabovelitterX$Treatment <- factor(GhanaCabovelitterX$Treatment, levels(GhanaCabovelitterX$Treatment)[c(2,1,3,4)])
+#GhanaCaboveTreeX$Burn_history  <- factor(GhanaCaboveTreeX$Burn_history , levels(GhanaCaboveTreeX$Burn_history )[c(2,1,3,4)])
+#GhanaCaboveShrubX$Burn_history  <- factor(GhanaCaboveShrubX$Burn_history , levels(GhanaCaboveShrubX$Burn_history )[c(2,1,3,4)])
+#GhanaCaboveHerbvegX$Burn_history  <- factor(GhanaCaboveHerbvegX$Burn_history , levels(GhanaCaboveHerbvegX$Burn_history )[c(2,1,3,4)])
+#GhanaCaboveDeadwoodX$Burn_history  <- factor(GhanaCaboveDeadwoodX$Burn_history , levels(GhanaCaboveDeadwoodX$Burn_history )[c(2,1,3,4)])
+#GhanaCabovelitterX$Burn_history  <- factor(GhanaCabovelitterX$Burn_history , levels(GhanaCabovelitterX$Burn_history )[c(2,1,3,4)])
 
 # Reorder SE
-#GhanaCaboveTreeSE$Treatment <- factor(GhanaCaboveTreeSE$Treatment, levels(GhanaCaboveTreeSE$Treatment)[c(2,1,3,4)])
-#GhanaCaboveShrubSE$Treatment <- factor(GhanaCaboveShrubSE$Treatment, levels(GhanaCaboveShrubSE$Treatment)[c(2,1,3,4)])
-#GhanaCaboveHerbvegSE$Treatment <- factor(GhanaCaboveHerbvegSE$Treatment, levels(GhanaCaboveHerbvegSE$Treatment)[c(2,1,3,4)])
-#GhanaCaboveDeadwoodSE$Treatment <- factor(GhanaCaboveDeadwoodSE$Treatment, levels(GhanaCaboveDeadwoodSE$Treatment)[c(2,1,3,4)])
-#GhanaCabovelitterSE$Treatment <- factor(GhanaCabovelitterSE$Treatment, levels(GhanaCabovelitterSE$Treatment)[c(2,1,3,4)])
+#GhanaCaboveTreeSE$Burn_history  <- factor(GhanaCaboveTreeSE$Burn_history , levels(GhanaCaboveTreeSE$Burn_history )[c(2,1,3,4)])
+#GhanaCaboveShrubSE$Burn_history  <- factor(GhanaCaboveShrubSE$Burn_history , levels(GhanaCaboveShrubSE$Burn_history )[c(2,1,3,4)])
+#GhanaCaboveHerbvegSE$Burn_history  <- factor(GhanaCaboveHerbvegSE$Burn_history , levels(GhanaCaboveHerbvegSE$Burn_history )[c(2,1,3,4)])
+#GhanaCaboveDeadwoodSE$Burn_history  <- factor(GhanaCaboveDeadwoodSE$Burn_history , levels(GhanaCaboveDeadwoodSE$Burn_history )[c(2,1,3,4)])
+#GhanaCabovelitterSE$Burn_history  <- factor(GhanaCabovelitterSE$Burn_history , levels(GhanaCabovelitterSE$Burn_history )[c(2,1,3,4)])
 
 # Create file for graph
-filename <- paste0("/Users/anotherswsmith/Documents/AfricanBioServices/Master projects/Joana Awuah Adofo/", "Aboveground.C.Ghana.colour", "_",Sys.Date(), ".tiff" )
+filename <- paste0("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/Fire_in_the_Mole/Figures/", "Aboveground.C.Ghana.colour", "_",Sys.Date(), ".tiff" )
 jpeg (filename, width=17, height=10, res=400, unit="cm")
 
 # Graph parameters
@@ -269,7 +276,7 @@ jpeg (filename, width=17, height=10, res=400, unit="cm")
 par(mfrow = c(2,3), oma = c(5,4,0,0) + 0.1, mar = c(2,1,.5,1) + 0.1)
 #it goes c(bottom, left, top, right) 
 # Tree panel
-stripchart(C.stock.kg.m2~Treatment,method ="jitter", data=GhanaCaboveTree,
+stripchart(C.stock.kg.m2~Burn_history ,method ="jitter", data=GhanaCaboveTree,
            axes=F,mgp=c(2,.5,0),bg="gray90", col="gray75",
            ylim=c(0,8), xlim=c(.5,4.5), cex=1.75,cex.lab=1.25,vertical=T,
            pch=c(21,21,22,22),
@@ -299,13 +306,13 @@ text(1.2,8,"(a) Trees", cex=1.25)
 par(xpd=T)
 
 #Mean points with SE - Trees
-levels(GhanaCaboveTreeX$Treatment)
+levels(GhanaCaboveTreeX$Burn_history )
 arrows(c(1,2,3,4), GhanaCaboveTreeX$x-GhanaCaboveTreeSE$x,c(1,2,3,4), GhanaCaboveTreeX$x+GhanaCaboveTreeSE$x, length=0.05, angle=90, code=3, lwd = 1, col=c("light green","black", "tan4", "dark green"))
-points(GhanaCaboveTreeX$Treatment, GhanaCaboveTreeX$x, col =c("light green","black", "tan4", "dark green"), pch =c(21,21,22,22), lwd =2, bg = c("light green","white", "white", "dark green"), cex =2.5,xpd = NA)
-text(GhanaCaboveTreeX$Treatment, (GhanaCaboveTreeX$x+1.5), labels=c("a","a","a","b"), cex= 1.45)
+points(GhanaCaboveTreeX$Burn_history , GhanaCaboveTreeX$x, col =c("light green","black", "tan4", "dark green"), pch =c(21,21,22,22), lwd =2, bg = c("light green","white", "white", "dark green"), cex =2.5,xpd = NA)
+text(GhanaCaboveTreeX$Burn_history ,GhanaCaboveTreeX$x+1.5, labels=c("ab","b","ab","b"), cex= 1.45)
 
 # Shrub panel
-stripchart(C.stock.kg.m2~Treatment,method ="jitter", data=GhanaCaboveShrub,
+stripchart(C.stock.kg.m2~Burn_history ,method ="jitter", data=GhanaCaboveShrub,
            axes=F,mgp=c(2,1,0), bg="gray90", col="gray75",
            ylim=c(0,5), xlim=c(.5,4.5), cex=1.75,cex.lab=1.25,vertical=T,
            pch=c(21,21,22,22),
@@ -313,9 +320,9 @@ stripchart(C.stock.kg.m2~Treatment,method ="jitter", data=GhanaCaboveShrub,
            main="")
 
 #Mean points with SE - Shrubs
-levels(GhanaCaboveShrubX$Treatment)
+levels(GhanaCaboveShrubX$Burn_history )
 arrows(c(1,2,3,4), GhanaCaboveShrubX$x-GhanaCaboveShrubSE$x,c(1,2,3,4), GhanaCaboveShrubX$x+GhanaCaboveShrubSE$x, length=0.05, angle=90, code=3, col=c("light green","black", "tan4", "dark green"))
-points(GhanaCaboveShrubX$Treatment, GhanaCaboveShrubX$x, col =c("light green","black", "tan4", "dark green"), pch =c(21,21,22,22), lwd =2, bg = c("light green","white", "white", "dark green"), cex =2.5,xpd = NA)
+points(GhanaCaboveShrubX$Burn_history , GhanaCaboveShrubX$x, col =c("light green","black", "tan4", "dark green"), pch =c(21,21,22,22), lwd =2, bg = c("light green","white", "white", "dark green"), cex =2.5,xpd = NA)
 
 # Axes
 axis(1, cex =.9,las=1,lwd =1.5, tck=-0.02,at=c(1:4),labels=c("","","",""))
@@ -330,7 +337,7 @@ text(1.2,5,"(b) Shrubs", cex=1.25)
 par(xpd=T)
 
 # Herb veg panel
-stripchart(C.stock.kg.m2~Treatment,method ="jitter", data=GhanaCaboveHerbveg,
+stripchart(C.stock.kg.m2~Burn_history ,method ="jitter", data=GhanaCaboveHerbveg,
            axes=F,mgp=c(2,1,0), bg="gray90", col="gray75",
            ylim=c(0,.15), xlim=c(.5,4.5), cex=1.75,cex.lab=1.25,vertical=T,
            pch=c(21,21,22,22),
@@ -338,9 +345,9 @@ stripchart(C.stock.kg.m2~Treatment,method ="jitter", data=GhanaCaboveHerbveg,
            main="")
 
 #Mean points with SE - Litter
-levels(GhanaCaboveHerbvegX$Treatment)
+levels(GhanaCaboveHerbvegX$Burn_history )
 arrows(c(1,2,3,4), GhanaCaboveHerbvegX$x-GhanaCaboveHerbvegSE$x,c(1,2,3,4), GhanaCaboveHerbvegX$x+GhanaCaboveHerbvegSE$x, length=0.05, angle=90, code=3, col=c("light green","black", "tan4", "dark green"))
-points(GhanaCaboveHerbvegX$Treatment, GhanaCaboveHerbvegX$x, col =c("light green","black", "tan4", "dark green"), pch =c(21,21,22,22), lwd =2, bg = c("light green","white", "white", "dark green"), cex =2.5,xpd = NA)
+points(GhanaCaboveHerbvegX$Burn_history , GhanaCaboveHerbvegX$x, col =c("light green","black", "tan4", "dark green"), pch =c(21,21,22,22), lwd =2, bg = c("light green","white", "white", "dark green"), cex =2.5,xpd = NA)
 
 # Axes
 axis(1, cex =.9,las=1,lwd =1.5, tck=-0.02,at=c(1:4),labels=c("","","",""))
@@ -357,7 +364,7 @@ par(xpd=T)
 #par(mar = c(5,4,0,0) + 0.1)
 
 # Deadwood panel
-stripchart(C.stock.kg.m2~Treatment,method ="jitter", data=GhanaCaboveDeadwood,
+stripchart(C.stock.kg.m2~Burn_history ,method ="jitter", data=GhanaCaboveDeadwood,
            axes=F,mgp=c(2,2,0), bg="gray90", col="gray75",
            ylim=c(0,.8), xlim=c(.5,4.5), cex=1.75,cex.lab=1.25,vertical=T,
            pch=c(21,21,22,22),
@@ -365,9 +372,10 @@ stripchart(C.stock.kg.m2~Treatment,method ="jitter", data=GhanaCaboveDeadwood,
            main="")
 
 #Mean points with SE - Deadwood
-levels(GhanaCaboveDeadwoodX$Treatment)
-arrows(c(1,2,3,4), GhanaCaboveDeadwoodX$x-GhanaCaboveDeadwoodSE$x,c(1,2,3,4), GhanaCaboveDeadwoodX$x+GhanaCaboveDeadwoodSE$x, length=0.05, angle=90, code=3,col=c("light green","black", "tan4", "dark green"))
-points(GhanaCaboveDeadwoodX$Treatment, GhanaCaboveDeadwoodX$x, col =c("light green","black", "tan4", "dark green"), pch =c(21,21,22,22), lwd =2, bg = c("light green","white", "white", "dark green"), cex =2.5,xpd = NA)
+levels(GhanaCaboveDeadwoodX$Burn_history )
+#GhanaCaboveDeadwoodX$x-GhanaCaboveDeadwoodSE$x
+arrows(c(1,2,3,4), c(-0.015),c(1,2,3,4), GhanaCaboveDeadwoodX$x+GhanaCaboveDeadwoodSE$x, length=0.05, angle=90, code=3,col=c("light green","black", "tan4", "dark green"))
+points(GhanaCaboveDeadwoodX$Burn_history , GhanaCaboveDeadwoodX$x, col =c("light green","black", "tan4", "dark green"), pch =c(21,21,22,22), lwd =2, bg = c("light green","white", "white", "dark green"), cex =2.5,xpd = NA)
 
 # Axes
 axis(1, cex =.9,las=1,lwd =1.5, tck=-0.02,at=c(1:4),labels=c("","","",""))
@@ -383,7 +391,7 @@ text(1.5,.8,"(d) Deadwood", cex=1.25)
 par(xpd=T)
 
 # Litter panel
-stripchart(C.stock.kg.m2~Treatment,method ="jitter", data=GhanaCabovelitter,
+stripchart(C.stock.kg.m2~Burn_history ,method ="jitter", data=GhanaCabovelitter,
            axes=F,mgp=c(2,1,0), bg="gray90", col="gray75",
            ylim=c(0,.2), xlim=c(.5,4.5), cex=1.75,cex.lab=1.25,vertical=T,
            pch=c(21,21,22,22),
@@ -392,8 +400,8 @@ stripchart(C.stock.kg.m2~Treatment,method ="jitter", data=GhanaCabovelitter,
 
 #Mean points with SE - Litter
 arrows(c(1,2,3,4), GhanaCabovelitterX$x-GhanaCabovelitterSE$x,c(1,2,3,4), GhanaCabovelitterX$x+GhanaCabovelitterSE$x, length=0.05, angle=90, code=3, col=c("light green","black", "tan4", "dark green"))
-points(GhanaCabovelitterX$Treatment, GhanaCabovelitterX$x, col =c("light green","black", "tan4", "dark green"), pch =c(21,21,22,22), lwd =2, bg = c("light green","white", "white", "dark green"), cex =2.5,xpd = NA)
-text(GhanaCabovelitterX$Treatment, (GhanaCabovelitterX$x+0.03), labels=c("ab","a","ab","b"), cex= 1.45)
+points(GhanaCabovelitterX$Burn_history , GhanaCabovelitterX$x, col =c("light green","black", "tan4", "dark green"), pch =c(21,21,22,22), lwd =2, bg = c("light green","white", "white", "dark green"), cex =2.5,xpd = NA)
+#text(GhanaCabovelitterX$Burn_history , (GhanaCabovelitterX$x+0.03), labels=c("ab","a","ab","b"), cex= 1.45)
 
 # Axes
 axis(1, cex =.9,las=1,lwd =1.5, tck=-0.02,at=c(1:4),labels=c("","","",""))
@@ -409,7 +417,7 @@ par(xpd=T)
 
 #Xlab
 par(xpd=NA)
-text(2,-.12,"Fire history and season", cex=1.25)
+text(2,-.12,"Burn season & history", cex=1.25)
 par(xpd=T)
 
 # Plot legend outside last panel
@@ -423,7 +431,7 @@ dev.off()
 
 
 ################################################################################
-# Stack barplot of Ecosystem C seperated aboveground and belowground
+#### Stack barplot of Ecosystem C seperated aboveground and belowground ####
 ################################################################################
 # Stack barplot of Aboveground pools
 # Stack barplot of belowground C horizons
@@ -435,40 +443,42 @@ library(car)
 SE<- function(x) sqrt(var(x,na.rm=TRUE)/length(na.omit(x)))
 ################################################################
 # Import data - above C storage data for Ghana
-GhanaCabove<-read.csv("/Users/anotherswsmith/Documents/AfricanBioServices/Master projects/Joana Awuah Adofo/Ghana.aboveground.csv", sep=",",header=TRUE)
+setwd("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/")
+GhanaCabove<-read.csv("Fire_in_the_Mole/Ghana.aboveground.copy.csv", sep=",",header=TRUE)
 # Import data -Belowground C storage
-GhanaCbelow<-read.csv("/Users/anotherswsmith/Documents/AfricanBioServices/Master projects/Joana Awuah Adofo/Ghana.belowground.csv", sep=",",header=TRUE)
+GhanaCbelow<-read.csv("Fire_in_the_Mole/Ghana.belowground_correct.csv", sep=",",header=TRUE)
 
 # Total above and below C stocks
-aboveC<-aggregate(GhanaCabove$C.stock.kg.m2, by=list(Treatment=GhanaCabove$Treatment,Location=GhanaCabove$Location),na.rm=T,sum)
-belowC<-aggregate(GhanaCbelow$SOC, by=list(Treatment=GhanaCbelow$Treatment,Location=GhanaCbelow$Location),na.rm=T,sum)
-GhanaEcosystemC<-merge(aboveC,belowC, by=c("Location","Treatment"))
-dim(GhanaEcosystemC) # 27  4
+aboveC<-aggregate(GhanaCabove$C.stock.kg.m2, by=list(Burn_history =GhanaCabove$Burn_history ,Location=GhanaCabove$Location),na.rm=T,sum)
+belowC<-aggregate(GhanaCbelow$C.density, by=list(Burn_history =GhanaCbelow$Burn_history ,Location=GhanaCbelow$Location),na.rm=T,sum)
+
+GhanaEcosystemC<-merge(aboveC,belowC, by=c("Location","Burn_history"))
+dim(GhanaEcosystemC) # 28  4
 GhanaEcosystemC$EcosystemC<-GhanaEcosystemC$x.x+GhanaEcosystemC$x.y
-colnames(GhanaEcosystemC)<-c("Location","Treatment","AboveC","BelowC","EcosystemC")
+colnames(GhanaEcosystemC)<-c("Location","Burn_history ","AboveC","BelowC","EcosystemC")
 dim(GhanaEcosystemC) #28  5 
 GhanaEcosystemC
 
 # Total aboveground SE
-aboveC_mean<-aggregate(GhanaEcosystemC$AboveC, by=list(Treatment=GhanaEcosystemC$Treatment),mean)
-aboveC_SE<-aggregate(GhanaEcosystemC$AboveC, by=list(Treatment=GhanaEcosystemC$Treatment),SE)
+aboveC_mean<-aggregate(GhanaEcosystemC$AboveC, by=list(Burn_history =GhanaEcosystemC$Burn_history ),mean)
+aboveC_SE<-aggregate(GhanaEcosystemC$AboveC, by=list(Burn_history =GhanaEcosystemC$Burn_history ),sd)
 colnames(aboveC_mean)[2]<-"mean"
 aboveCx<-cbind(aboveC_mean,aboveC_SE[2])
 colnames(aboveCx)[3]<-"SE"
 # Total belowground SE
-belowC_mean<-aggregate(GhanaEcosystemC$BelowC, by=list(Treatment=GhanaEcosystemC$Treatment),mean)
-belowC_SE<-aggregate(GhanaEcosystemC$BelowC, by=list(Treatment=GhanaEcosystemC$Treatment),SE)
+belowC_mean<-aggregate(GhanaEcosystemC$BelowC, by=list(Burn_history =GhanaEcosystemC$Burn_history ),mean)
+belowC_SE<-aggregate(GhanaEcosystemC$BelowC, by=list(Burn_history =GhanaEcosystemC$Burn_history ),sd)
 colnames(belowC_mean)[2]<-"mean"
 belowCx<-cbind(belowC_mean,belowC_SE[2])
 colnames(belowCx)[3]<-"SE"
 
-# Summaries above and below C stocks
+# Summaries above and below C pools
 #Aboveground C pools
-names(GhanaCbelow)
-aboveC_pools<-aggregate(GhanaCabove$C.stock.kg.m2, by=list(Treatment=GhanaCabove$Treatment,Pool=GhanaCabove$Pool),na.rm=T,mean)
+GhanaCabove1<-droplevels(GhanaCabove[!GhanaCabove$C.stock.kg.m2==0,])
+aboveC_pools<-aggregate(GhanaCabove1$C.stock.kg.m2, by=list(Burn_history =GhanaCabove1$Burn_history ,Pool=GhanaCabove1$Pool),na.rm=T,mean)
 colnames(aboveC_pools)[3]<-"Carbon"
 aboveC_pools$abovebelow<-"above"
-belowC_hoz<-aggregate(GhanaCbelow$SOC, by=list(Treatment=GhanaCbelow$Treatment,Pool=GhanaCbelow$Horizon),na.rm=T,mean)
+belowC_hoz<-aggregate(GhanaCbelow$C.density, by=list(Burn_history =GhanaCbelow$Burn_history ,Pool=GhanaCbelow$Horizon),na.rm=T,mean)
 belowC_hoz$Pool<-as.factor(belowC_hoz$Pool)
 colnames(belowC_hoz)[3]<-"Carbon"
 belowC_hoz$abovebelow<-"below"
@@ -479,19 +489,19 @@ library(Rmisc)
 library(plyr)
 # Aboveground means and SE
 abgroup <- summarySE(GhanaCabove, measurevar="C.stock.kg.m2", 
-                      groupvars=c("Treatment","Pool"), na.rm = TRUE)
+                      groupvars=c("Burn_history","Pool"), na.rm = TRUE)
 
-abgroupsum <- ddply(abgroup,.(Treatment),summarize,mean = sum(C.stock.kg.m2))
-abgroupSE <- ddply(abgroup,.(Treatment),summarize,SE = SE(C.stock.kg.m2))
+abgroupsum <- ddply(abgroup,.(Burn_history),summarize,mean = sum(C.stock.kg.m2))
+abgroupSE <- ddply(abgroup,.(Burn_history),summarize,SE = sd(C.stock.kg.m2))
 ab4 <- merge(abgroup,abgroupsum)
 ab5 <- merge(ab4,abgroupSE)
 
 # Belowground means and SE
-bpgroup <- summarySE(GhanaCbelow, measurevar="SOC", 
-                     groupvars=c("Treatment","Horizon"), na.rm = TRUE)
+bpgroup <- summarySE(GhanaCbelow, measurevar="C.density", 
+                     groupvars=c("Burn_history","Horizon"), na.rm = TRUE)
 bpgroup$Horizon<-as.factor(bpgroup$Horizon)
-bpgroupsum <- ddply(bpgroup,.(Treatment),summarize,mean = sum(SOC))
-bpgroupSE <- ddply(bpgroup,.(Treatment),summarize,SE = SE(SOC))
+bpgroupsum <- ddply(bpgroup,.(Burn_history ),summarize,mean = sum(C.density))
+bpgroupSE <- ddply(bpgroup,.(Burn_history ),summarize,SE = sd(C.density))
 bp4 <- merge(bpgroup,bpgroupsum)
 bp5 <- merge(bp4,bpgroupSE)
 
@@ -500,18 +510,20 @@ bp5 <- merge(bp4,bpgroupSE)
 #colnames(bp6)[4]<-"C.stock.kg.m2"
 #abbp1<-rbind(ab5,bp6)
 
-#abbp1$pool_code<-as.factor(with(abbp1, paste(Treatment, Pool, sep="")))
+#abbp1$pool_code<-as.factor(with(abbp1, paste(Burn_history , Pool, sep="")))
 
 # Reorder factors
 # Reorder fire history and season # "Recent early","Recent late", "Old late", "Unburnt"
-ab5$Treatment <- factor(ab5$Treatment , levels = c("Recent early","Recent late", "Old late", "Unburnt"))
-bp5$Treatment <- factor(bp5$Treatment , levels = c("Recent early","Recent late", "Old late", "Unburnt"))
-#abbp1$Treatment <- factor(abbp1$Treatment , levels = c("Recent early","Recent late", "Old late", "Unburnt"))
+ab5$Burn_history  <- factor(ab5$Burn_history  , levels = c("Recent early","Recent late", "Old late", "Unburnt"))
+bp5$Burn_history  <- factor(bp5$Burn_history  , levels = c("Recent early","Recent late", "Old late", "Unburnt"))
+#abbp1$Burn_history  <- factor(abbp1$Burn_history  , levels = c("Recent early","Recent late", "Old late", "Unburnt"))
 # Reorder aboveground pools
 #shrubs, then herb veg and then litter+deadwood.
 levels(ab5$Pool)
-ab5$Pool <- factor(ab5$Pool  , levels = c("Tree","Shrub", "litter.deadwood", "Herb.veg"))
-levels(ab5$Pool)<-c("Tree","Shrub", "Litter & Deadwood", "Herbaceous")
+ab5$Pool<-as.factor(ab5$Pool)
+levels(ab5$Pool)<-c("Deadwood","Herbaceous", "Litter","Shrub","Tree")
+ab5$Pool <- factor(ab5$Pool  , levels = c("Tree","Shrub","Deadwood","Herbaceous", "Litter"))
+
 # Apply colour pallette to factors
 #color_pallete_function <- colorRampPalette(
 #  colors = c("light green","black","tan4", "dark green"),
@@ -536,7 +548,7 @@ levels(ab5$Pool)<-c("Tree","Shrub", "Litter & Deadwood", "Herbaceous")
 # Aboveground
 #ab6<-abbp1[1:16,]
 #ab5<-ab6
-#ab5$Treatment 
+#ab5$Burn_history  
 
 #plot(C.stock.kg.m2~as.numeric(pool_code),data=ab5, pch=21, bg=pt.col)
 # Colours are good
@@ -546,7 +558,7 @@ levels(ab5$Pool)<-c("Tree","Shrub", "Litter & Deadwood", "Herbaceous")
 # Belowground
 #bp7<-abbp1[17:32,]
 #bp5<-bp7
-#bp5$Treatment 
+#bp5$Burn_history  
 #colnames(bp5)[2]<-"Horizon"
 #colnames(bp5)[4]<-"SOC"
 #droplevels(bp5)
@@ -557,14 +569,14 @@ bp5$Horizon <- factor(bp5$Horizon  , levels = c("12-17cm","7-12cm","2-7cm","0-2c
 #levels(bp5$Horizon)
 #bp5$Horizon <- factor(bp5$Horizon, levels(bp5$Horizon)[c(4,3,2,1)])
 library(grid)
-
+ab5
 # Plot aboveground C
-ap <- ggplot(data=ab5, aes(x=Treatment, y=C.stock.kg.m2))
+ap <- ggplot(data=ab5, aes(x=Burn_history , y=C.stock.kg.m2))
 ap<- ap+ geom_bar(aes(fill=Pool),stat="identity", show.legend=T)
 ap<- ap+ scale_fill_grey(start = 0.90, end = 0.65)
 #ap<- ap+ scale_fill_manual(values=c(ab5$pt.col))
-ap<- ap+ scale_y_continuous(breaks=c(0,2,4,6,8,10), expand = c(0, 0),limits=c(0, 12.5))
-ap<-ap+geom_errorbar(aes(x=Treatment,ymin=mean-SE, ymax=mean+SE),
+ap<- ap+ scale_y_continuous(breaks=c(0,2,4), expand = c(0, 0),limits=c(0, 5.5))
+ap<-ap+geom_errorbar(aes(x=Burn_history ,ymin=mean-SE, ymax=mean+SE),
                      size=0.5, width=.2,show.legend=F)
 ap <- ap + xlab("") + ylab(expression(paste("Carbon ( kg ",m^-2,")")))
 ap <- ap + theme_bw() +
@@ -582,7 +594,8 @@ ap <- ap + theme_bw() +
         #,axis.ticks.length=unit(-0.2, "cm")
         #,axis.text.y=element_text(hjust=-.4) # HACK MESSY!
         ,axis.line.y = element_line(color="black", size = .25)
-        ,legend.position=c(.25, .8)
+        ,legend.position = "right"
+        #,legend.position=c(.25, .8)
         ,plot.margin = unit(c(5,8.5,-4.7,5), "mm")) # 8 expanded right margin
 #ap <- ap + guides(fill=guide_legend(title="Aboveground pools"))
 #ap <- ap + annotate(geom="text", x=4.75, y=4.8, label="Litter",color="black")
@@ -597,16 +610,16 @@ grid.draw(gt)
 
 
 # Plot belowground C
-bp <- ggplot(data=bp5, aes(x=Treatment, y=SOC))
+bp <- ggplot(data=bp5, aes(x=Burn_history , y=C.density))
 bp<- bp+ geom_bar(aes(fill=Horizon),stat="identity",show.legend=T) 
 #bp<- bp+ geom_bar(aes(fill=factor(Horizon, levels=c("17","12","7","2")))
 #                  ,stat="identity",show.legend=F) 
 bp<- bp+ scale_fill_grey(start = 0.55, end = 0.2)
 #bp<- bp+ scale_fill_manual(values=c(bp5$pt.col)) 
-bp<-  bp + scale_y_reverse(breaks=c(2,4,6,8,10,12),labels=c(2,4,6,8,10,12),expand = c(0, 0))
-bp<-bp+geom_errorbar(aes(x=Treatment,ymin=mean-SE, ymax=mean+SE),
+bp<-  bp + scale_y_reverse(breaks=c(2,4),labels=c(2,4),expand = c(0, 0))
+bp<-bp+geom_errorbar(aes(x=Burn_history ,ymin=mean-SE, ymax=mean+SE),
                      size=0.5, width=.2)
-bp <- bp + xlab("Fire history and season") + ylab("")
+bp <- bp + xlab("Burn season & history") + ylab("")
 bp <- bp + theme_bw() +
   theme(plot.background = element_blank()
         #,panel.grid.major = element_blank()
@@ -622,7 +635,8 @@ bp <- bp + theme_bw() +
         #,axis.ticks.length=unit(-0.2, "cm")
         #,axis.text.y=element_text(hjust=-.4) # HACK MESSY!
         ,axis.line.y = element_line(color="black", size = .25)
-        ,legend.position=c(.75, 1.8)
+        ,legend.position="right"
+        #,legend.position=c(.75, 1.8)
         ,plot.margin = unit(c(-1.45,8.5,5,5), "mm"))
 bp <- bp + guides(fill=guide_legend(title="Soil horizons",reverse=TRUE)) # Need to reverse the legend
 #bp <- bp + guides(fill=guide_legend(title="Aboveground pools"))
@@ -637,7 +651,7 @@ grid.draw(bt)
 
 
 #library(grid)
-filename <- paste0("/Users/anotherswsmith/Documents/AfricanBioServices/Master projects/Joana Awuah Adofo/", "EcoC_Ghana.stackbar.BWpool",
+filename <- paste0("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/Fire_in_the_Mole/Figures/", "EcoC_Ghana.stackbar.BWpool",
                    "_",Sys.Date(), ".jpeg" )
 jpeg (filename, width=15, height=20, res=400, unit="cm")
 
@@ -650,3 +664,7 @@ grob.bp$layout$clip[grob.bp$layout$name=="panel"] <- "off"
 grid.draw(rbind(grob.ap, grob.bp, size = "last"))
 
 dev.off()
+
+################################################################################
+#### END ####
+################################################################################
