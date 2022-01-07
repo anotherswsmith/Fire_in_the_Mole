@@ -320,6 +320,7 @@ aggregate(GhanaEcosystemC$C.stock.kg.m2, by=list(Burn_history=GhanaEcosystemC$Bu
 GhanaEcosystemCTot<-aggregate(GhanaEcosystemC$C.stock.kg.m2, by=list(Burn_history=GhanaEcosystemC$Burn_history,Location=GhanaEcosystemC$Location),na.rm=T,sum)
 colnames(GhanaEcosystemCTot)<-c("Burn_history","Location","C.stock.kg.m2")
 dim(GhanaEcosystemCTot) #28  3 - only 28 datapoints - sufficient for mixed model? 
+(1-(2.823239/3.862695))*100 # 26.91012 difference late vs early season
 
 # Add the cluster
 GhanaEcosystemCTot<-merge(GhanaEcosystemCTot,clustxy, by=c("Location"), all.x=T)
@@ -334,7 +335,6 @@ names(GhanaEcosystemCTot)
 GhanaCmixedEco<-lmer(C.stock.kg.m2~Burn_history+(1|clust),na.action=na.omit, data = GhanaEcosystemCTot, REML=T)
 summary(GhanaCmixedEco)
 anova(GhanaCmixedEco) # Treatment marginal for Ecosystem C 
-
 
 # Residual plot
 res3 <- simulateResiduals(GhanaCmixedEco, plot = T) # All good - not many data points

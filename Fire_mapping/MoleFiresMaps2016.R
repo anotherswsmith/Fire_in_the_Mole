@@ -1,6 +1,9 @@
+#########################################################################################################################
 #Fire map 2016
+rm(list=ls())
 require(raster)
 require(rgdal)
+#########################################################################################################################
 
 #Molefires from Joana including 2016
 #molefires<-read.table("C:\\Users\\speed\\Desktop\\Savanna fire\\DATA FROM 2000-2016.csv",header=T,sep=',')
@@ -328,13 +331,14 @@ KML(SpatialPoints(allsamples[,2:3],proj4string=CRS('+proj=longlat +datum=WGS84')
 
 
 
-####################
-#Figure
+#########################################################################################################################
+#### Area Mole National Park burn season and history ####
 require(rgdal)
 require(rasterVis)
 require(gridExtra)
 library(rgeos)
 library(sf)
+#########################################################################################################################
 
 setwd("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/")
 
@@ -412,9 +416,34 @@ mMOLE1[mMOLE1>0]<-NA
 cellStats(mMOLE1, function(i, ...) sum(is.na(i))) # 697
 697/5332 # 13 % unburnt
 
+#########################################################################################################################
+#### Figure ####
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(rnaturalearthhires)
+#########################################################################################################################
+
+#Working directory
+setwd("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/")
+
+# Fire layers
+lateraster<-raster('Fire_in_the_Mole/Fire_mapping/lastlatefire.tif')
+earlyraster<-raster('Fire_in_the_Mole/Fire_mapping/lastearlyfire.tif')
+lastfire<-raster('Fire_in_the_Mole/Fire_mapping/MoleYearLastFire.tif')
+lastfirell<-projectRaster(lastfire,crs='+proj=longlat +datum=WGS84')
+levelplot(stack(lateraster,earlyraster),margin=F,rasterTheme=YlOrRdTheme)
+
+### Make colors transparent
+makeTransparent<-function(someColor, alpha=75)
+{
+  newColor<-col2rgb(someColor)
+  apply(newColor, 2, function(curcoldata){rgb(red=curcoldata[1], green=curcoldata[2],
+                                              blue=curcoldata[3],alpha=alpha, maxColorValue=255)})
+} #End function
 
 #Mole NP
-gha<-getData('GADM',country='GHA',level=1)
+#gha<-getData('GADM',country='GHA',level=1)
+gha<-ne_states(country = 'ghana')#  scale = 'medium')
 nps<-readOGR('Fire_in_the_Mole/Fire_mapping/WDPA_Feb2016_GHA-shapefile-polygons','WDPA_Feb2016_GHA-shapefile-polygons')
 studypoints<-read.csv('Fire_in_the_Mole/Fire_mapping/Coordinates.study.sites.csv')
 
@@ -435,9 +464,12 @@ levelplot(stack(lateraster,earlyraster),margin=F,rasterTheme=YlOrRdTheme)+
 
 plot(nps,add=T)
 
-
 studystack<-stack(lateraster,earlyraster)
 names(studystack)<-c('Late fires','Early fires')
+
+studystack_m<-mask(studystack,nps)
+levelplot(studystack_m,par.settings='YlOrRdTheme') 
+
 studystack_c<-crop(studystack,bb)
 levelplot(studystack_c,par.settings='YlOrRdTheme') 
           layer(sp.points(spsp[spsp$Type=='Unburnt',],pch=3,col=1))+
@@ -452,7 +484,16 @@ points(spsp[spsp$Type=='Unburnt',],pch=3)
   layer(sp.points(spsp[spsp$Type=='Recent_early season',],pch=1))+
   layer(sp.points(spsp[spsp$Type=='Recent_late season',],pch=16))
   
-  
+#### Plotting figure
+scaleMin <- floor(2000)
+scaleMax <- ceiling(2017)
+
+numberOfBreaks <- 17
+brksUniv <- round(seq(scaleMin,scaleMax, length.out=numberOfBreaks),0)
+
+myColorkey <- list(at=brksUniv, labels=list(at=(2000:2016), labels=round((2000:2016),0)))
+
+# Ghana - Mole National Park  
 lastfire_ext<-extend(lastfirell,gha)
 levelplot(lastfire_ext,margin=F,par.settings=YlOrRdTheme)+
   layer(sp.polygons(nps[nps$NAME=='Mole',]))+
@@ -464,20 +505,58 @@ lattice.options(
   layout.heights=list(bottom.padding=list(x=0), top.padding=list(x=0)),
   layout.widths=list(left.padding=list(x=0), right.padding=list(x=0))
 )
-p1<-levelplot(lastfire_ext,margin=F,par.settings=YlOrRdTheme,
+p1<-levelplot(lastfire_ext,margin=F,par.settings=YlOrRdTheme,#at=brksUniv, colorkey=myColorkey,
               key = list(space = 'left', text = list(c('Unburnt','Old_late', 'Recent_early season', 'Recent_late season'))
                          , points = list(pch=c(15,0,16,1),lwd=2,col=c('darkgreen','tan4','lightgreen','black'))))+
   layer(sp.polygons(nps[nps$NAME=='Mole',]))+
   layer(sp.polygons(gha))+
-  layer(sp.polygons(bb,fill='blue',border='blue'))
+  layer(sp.polygons(bb,fill=makeTransparent("blue"),border='blue'))
 
-p2<-levelplot(studystack_c,par.settings='YlOrRdTheme',names.attr=c('Late fires','Early fires'))+ 
+lattice.options(
+  layout.heights=list(bottom.padding=list(x=0), top.padding=list(x=0)),
+  layout.widths=list(left.padding=list(x=0), right.padding=list(x=0))
+)
+
+p2<-levelplot(studystack_m,par.settings='YlOrRdTheme',#at=brksUniv, colorkey=myColorkey,
+              names.attr=c('Late fires','Early fires'))+
+layer(sp.polygons(nps[nps$NAME=='Mole',]))+
+  layer(sp.polygons(bb,fill=makeTransparent("blue"),border='blue'))
+
+lattice.options(
+  layout.heights=list(bottom.padding=list(x=0), top.padding=list(x=0)),
+  layout.widths=list(left.padding=list(x=0), right.padding=list(x=0))
+)
+
+p3<-levelplot(studystack_c,par.settings='YlOrRdTheme',#at=brksUniv, colorkey=myColorkey,
+              names.attr=c('Late fires','Early fires'))+ 
   #   key = list(space = 'top', text = c('Unburnt','Old_late', 'Recent_early season', 'Recent_late season')
   #             , points = list(pch=c(3,2,1,16))))+
   layer(sp.points(spsp[spsp$Type=='Unburnt',],pch=15,col='darkgreen'))+
   layer(sp.points(spsp[spsp$Type=='Old_late',],pch=0,col='tan4',lwd=2))+
   layer(sp.points(spsp[spsp$Type=='Recent_early season',],pch=16,col='lightgreen'))+
   layer(sp.points(spsp[spsp$Type=='Recent_late season',],pch=1,col=1,lwd=2))
-tiff('S:\\Supervision\\Savanna Fire\\Manuscript\\MapFig.tif',res=300,width=9,height=7,units='in')
-grid.arrange(p1,p2)
+#tiff('S:\\Supervision\\Savanna Fire\\Manuscript\\MapFig.tif',res=300,width=9,height=7,units='in')
+#tiff('/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/Fire_in_the_Mole/Fire_mapping/MapFig.tif',res=300,width=9,height=7,units='in')
+#grid.arrange(p1,p2,p3)
+#dev.off()
+
+filename <- paste0("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/Fire_in_the_Mole/Fire_mapping/", "Fig_fire_map",".jpeg" )
+jpeg(filename,width= 24, height = 18,units ="cm",bg ="transparent", res = 600)
+grid.arrange(p1,p2,p3)
 dev.off()
+
+range2<-c(0,1)
+p0<-levelplot(lastfire_ext,scales = list(draw = FALSE), par.settings=list(axis.line = list(col = "white")),
+              margin=F,names.attr=c(''),title="",xlab = "", ylab = "", at = seq(range2[1], range2[2], length = 100),colorkey=NULL)
+p0
+
+## combine panels from both plots
+combo <- c(p1,p0,p2,p3)
+## rearrange in pairs
+update(combo, scales = list(draw = T),
+       names.attr=c('Late fires','Early fires'),
+       layout = c(2, 3), between = list(x = c(0, 0.5), y = 0.5))
+
+#########################################################################################################################
+#### END ####
+#########################################################################################################################
