@@ -574,6 +574,7 @@ ab5
 ap <- ggplot(data=ab5, aes(x=Burn_history , y=C.stock.kg.m2))
 ap<- ap+ geom_bar(aes(fill=Pool),stat="identity", show.legend=T)
 ap<- ap+ scale_fill_grey(start = 0.90, end = 0.65)
+ap<- ap+ geom_hline(yintercept=0,size=1.15)
 #ap<- ap+ scale_fill_manual(values=c(ab5$pt.col))
 ap<- ap+ scale_y_continuous(breaks=c(0,2,4), expand = c(0, 0),limits=c(0, 5.5))
 ap<-ap+geom_errorbar(aes(x=Burn_history ,ymin=mean-SE, ymax=mean+SE),
@@ -612,6 +613,7 @@ grid.draw(gt)
 # Plot belowground C
 bp <- ggplot(data=bp5, aes(x=Burn_history , y=C.density))
 bp<- bp+ geom_bar(aes(fill=Horizon),stat="identity",show.legend=T) 
+bp<- bp+geom_hline(yintercept=0,size=1.15)
 #bp<- bp+ geom_bar(aes(fill=factor(Horizon, levels=c("17","12","7","2")))
 #                  ,stat="identity",show.legend=F) 
 bp<- bp+ scale_fill_grey(start = 0.55, end = 0.2)
@@ -648,7 +650,6 @@ bp
 bt <- ggplot_gtable(ggplot_build(bp)) # Turn off clippig = annotate works
 bt$layout$clip[bt$layout$name == "panel"] <- "off"
 grid.draw(bt)
-
 
 #library(grid)
 filename <- paste0("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/Fire_in_the_Mole/Figures/", "EcoC_Ghana.stackbar.BWpool",

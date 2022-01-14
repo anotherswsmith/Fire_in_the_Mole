@@ -467,8 +467,11 @@ plot(nps,add=T)
 studystack<-stack(lateraster,earlyraster)
 names(studystack)<-c('Late fires','Early fires')
 
-studystack_m<-mask(studystack,nps)
-levelplot(studystack_m,par.settings='YlOrRdTheme') 
+laterasterMOLE<-raster::mask(lateraster,npsMOLE)
+earlyrasterMOLE<-raster::mask(earlyraster,npsMOLE)
+studystack_m<-stack(laterasterMOLE,earlyrasterMOLE) # Check 
+names(studystack_m)<-c('Late fires','Early fires')
+levelplot(studystack_m,par.settings='YlOrRdTheme')
 
 studystack_c<-crop(studystack,bb)
 levelplot(studystack_c,par.settings='YlOrRdTheme') 
@@ -508,9 +511,9 @@ lattice.options(
 p1<-levelplot(lastfire_ext,margin=F,par.settings=YlOrRdTheme,#at=brksUniv, colorkey=myColorkey,
               key = list(space = 'left', text = list(c('Unburnt','Old_late', 'Recent_early season', 'Recent_late season'))
                          , points = list(pch=c(15,0,16,1),lwd=2,col=c('darkgreen','tan4','lightgreen','black'))))+
-  layer(sp.polygons(nps[nps$NAME=='Mole',]))+
-  layer(sp.polygons(gha))+
-  layer(sp.polygons(bb,fill=makeTransparent("blue"),border='blue'))
+  latticeExtra::layer(sp.polygons(nps[nps$NAME=='Mole',]))+
+  latticeExtra::layer(sp.polygons(gha))+
+  latticeExtra::layer(sp.polygons(bb,fill=makeTransparent("blue"),border='blue'))
 
 lattice.options(
   layout.heights=list(bottom.padding=list(x=0), top.padding=list(x=0)),
@@ -519,8 +522,8 @@ lattice.options(
 
 p2<-levelplot(studystack_m,par.settings='YlOrRdTheme',#at=brksUniv, colorkey=myColorkey,
               names.attr=c('Late fires','Early fires'))+
-layer(sp.polygons(nps[nps$NAME=='Mole',]))+
-  layer(sp.polygons(bb,fill=makeTransparent("blue"),border='blue'))
+  latticeExtra::layer(sp.polygons(nps[nps$NAME=='Mole',]))+
+  latticeExtra::layer(sp.polygons(bb,fill=makeTransparent("blue"),border='blue'))
 
 lattice.options(
   layout.heights=list(bottom.padding=list(x=0), top.padding=list(x=0)),
@@ -531,10 +534,10 @@ p3<-levelplot(studystack_c,par.settings='YlOrRdTheme',#at=brksUniv, colorkey=myC
               names.attr=c('Late fires','Early fires'))+ 
   #   key = list(space = 'top', text = c('Unburnt','Old_late', 'Recent_early season', 'Recent_late season')
   #             , points = list(pch=c(3,2,1,16))))+
-  layer(sp.points(spsp[spsp$Type=='Unburnt',],pch=15,col='darkgreen'))+
-  layer(sp.points(spsp[spsp$Type=='Old_late',],pch=0,col='tan4',lwd=2))+
-  layer(sp.points(spsp[spsp$Type=='Recent_early season',],pch=16,col='lightgreen'))+
-  layer(sp.points(spsp[spsp$Type=='Recent_late season',],pch=1,col=1,lwd=2))
+  latticeExtra::layer(sp.points(spsp[spsp$Type=='Unburnt',],pch=15,col='darkgreen'))+
+  latticeExtra::layer(sp.points(spsp[spsp$Type=='Old_late',],pch=0,col='tan4',lwd=2))+
+  latticeExtra::layer(sp.points(spsp[spsp$Type=='Recent_early season',],pch=16,col='lightgreen'))+
+  latticeExtra::layer(sp.points(spsp[spsp$Type=='Recent_late season',],pch=1,col=1,lwd=2))
 #tiff('S:\\Supervision\\Savanna Fire\\Manuscript\\MapFig.tif',res=300,width=9,height=7,units='in')
 #tiff('/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/Fire_in_the_Mole/Fire_mapping/MapFig.tif',res=300,width=9,height=7,units='in')
 #grid.arrange(p1,p2,p3)
@@ -553,9 +556,13 @@ p0
 ## combine panels from both plots
 combo <- c(p1,p0,p2,p3)
 ## rearrange in pairs
+library(svglite)# Save as SVG
+setwd("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/Fire_in_the_Mole/Fire_mapping/")
+svg("Fire_map_MoleNP.svg",width= 10, height = 8)
 update(combo, scales = list(draw = T),
        names.attr=c('Late fires','Early fires'),
        layout = c(2, 3), between = list(x = c(0, 0.5), y = 0.5))
+dev.off()
 
 #########################################################################################################################
 #### END ####
