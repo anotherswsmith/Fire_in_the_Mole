@@ -106,6 +106,20 @@ aggregate(GhanaCabove$C.stock.kg.m2, by=list(Burn_history= GhanaCabove$Burn_hist
 #3   Recent late deadwood 5
 #4       Unburnt deadwood 5
 
+poolC<-aggregate(C.stock.kg.m2~Pool,GhanaCabove,mean)
+sum(poolC$C.stock.kg.m2)
+(0.03517505/2.863034)*100 # 1.3% # Deadwood
+(0.03280402/2.863034)*100 # 1.4% # Herb.veg
+(0.06578942/2.863034)*100 # 2.3% # Litter
+(1.76016907/2.863034)*100 # 65% # Shrub
+(0.96909661/2.863034)*100 # 33% # Tree
+sEcoC<-aggregate(C.stock.kg.m2~Pool+Burn_history,GhanaCabove,mean)
+SumEcoC<-aggregate(C.stock.kg.m2~Burn_history,sEcoC,sum)
+colnames(SumEcoC)[2]<-"Ecosystem_C"
+SumEcoC<-merge(sEcoC,SumEcoC,by=c("Burn_history"))
+SumEcoC$prop_C<-(SumEcoC$C.stock.kg.m2/SumEcoC$Ecosystem_C)*100
+aggregate(prop_C~Pool+Burn_history,SumEcoC,mean)
+
 # Correlation between shrub C and tree C 
 GhanaCaboveshrub<-GhanaCabove[GhanaCabove$Pool=="Shrub",]
 GhanaCabovetree<-GhanaCabove[GhanaCabove$Pool=="Tree",]
@@ -117,7 +131,9 @@ plot(GhanaCaboveshrub$C.stock.kg.m2~GhanaCabovetree$C.stock.kg.m2, pch =21)
 GhanaCabove$Burn_history<- relevel(GhanaCabove$Burn_history, ref = "Unburnt")
 
 ### Reference Herb veg
+levels(GhanaCabove$Pool)
 GhanaCabove$Pool<- relevel(GhanaCabove$Pool, ref = "Herb.veg")
+GhanaCabove$Pool<- relevel(GhanaCabove$Pool, ref = "Shrub")
 
 # Mixed effect model # Fixed factors Burn history nested within Depth and random factor is site
 GhanaCmixedAbove<-lmer((C.stock.kg.m2^.2)~Burn_history+Pool+Pool/Burn_history+(1|clust),
@@ -155,7 +171,7 @@ AboveC1
 
 test2 <- emmeans(GhanaCmixedAbove,~Pool)
 test2<-contrast(regrid(test2),method = "pairwise") #dunnett
-AboveC <- as.data.frame(broom.mixed::tidy(test2, conf.int = T)) # All significant different
+AboveC <- as.data.frame(broom.mixed::tidy(test2, conf.int = T)) # All significant different - not tree
 AboveC
 
 test3 <- emmeans(GhanaCmixedAbove,~+Pool/Burn_history)
@@ -175,7 +191,7 @@ library(pbkrtest)
 #GhanaCmixedAbove<-lmer((C.stock.kg.m2^.2)~Burn_history+Pool+Pool/Burn_history+(1|clust),data = GhanaCabove)
 #anova(GhanaCmixedAbove)
 lsmeans(GhanaCmixedAbove, pairwise~Burn_history, adjust="Tukey") # Correct number of rows - but all factors signifcant - not true
-lsmeans(GhanaCmixedAbove, pairwise~Pool, adjust="Tukey") # Correct number of rows - but all factors signifcant - not true
+lsmeans(GhanaCmixedAbove, pairwise~Pool, adjust="Tukey") # Correct number of rows - but all factors signifcant except her and litter
 
 leastsquare <-lsmeans(GhanaCmixedAbove, pairwise~Burn_history|Pool, adjust="Tukey") # Correct number of rows - but all factors signifcant - not true
 leastsquare
