@@ -186,13 +186,13 @@ sim_pool_burn <- simr::powerSim(m1, nsim=20,test = fcompare(y ~ Burn_history+Poo
 sim_pool_burn # 100% power 
 
 # Plotting 
-m1_as <- simr::extend(m1, along="site", n=30)
-pcAbove<-simr::powerCurve(m1_as, test = fcompare(y ~ Burn_history+Pool),
-                      along="site",nsim=100)
-filenameAbove <- paste0("./", "Power_analysis_aboveground_carbon", ".jpeg" )
-jpeg(filenameAbove ,width= 12, height = 10,units ="cm",bg ="transparent", res = 800)
-plot(pcAbove)
-dev.off()
+#m1_as <- simr::extend(m1, along="site", n=30)
+#pcAbove<-simr::powerCurve(m1_as, test = fcompare(y ~ Burn_history+Pool),
+#                      along="site",nsim=100)
+#filenameAbove <- paste0("./Figures/", "Power_analysis_aboveground_carbon", ".jpeg" )
+#jpeg(filenameAbove ,width= 12, height = 10,units ="cm",bg ="transparent", res = 800)
+#plot(pcAbove)
+#dev.off()
 
 # extract fixed effect estimates
 estimatesfixedeffects <- fixef(m1)
@@ -212,7 +212,7 @@ AIC(GhanaCmixedAbove) # 11.95403
 
 # Export summary
 GAboveCsummary <- as.data.frame(broom.mixed::tidy(GhanaCmixedAbove, conf.int = T))
-write.csv(GAboveCsummary,file="./Model_summaries/GAboveCsummary.csv")
+write.csv(GAboveCsummary,file="./Model_summaries/GAboveCsummary.csv", row.names=F)
 
 # Residual plot
 res <- simulateResiduals(GhanaCmixedAbove, plot = T) # Excellent QQ and resid vs predict issue lower portion
@@ -231,23 +231,21 @@ anova(GhanaCmixedAbove2,GhanaCmixedAbove3) # Pool significant
 anova(GhanaCmixedAbove2,GhanaCmixedAbove4) # NS
 
 # Contrasts
-library(emmeans)
-test1 <- emmeans(GhanaCmixedAbove,~Burn_history)
-test1<-contrast(regrid(test1),method = "pairwise") #dunnett
-AboveC1 <- as.data.frame(broom.mixed::tidy(test1, conf.int = T)) # All significant different
-AboveC1
-
-test2 <- emmeans(GhanaCmixedAbove,~Pool)
-test2<-contrast(regrid(test2),method = "pairwise") #dunnett
-AboveC <- as.data.frame(broom.mixed::tidy(test2, conf.int = T)) # All significant different - not tree
-AboveC
-
-test3 <- emmeans(GhanaCmixedAbove,~+Pool/Burn_history)
-test3<-contrast(regrid(test3),method = "pairwise") #dunnett
-AboveC3 <- as.data.frame(broom.mixed::tidy(test3, conf.int = T)) # All significant different
-AboveC3
-AboveCP05L<-droplevels(AboveC3[AboveC3$adj.p.value<0.05 & !is.na(AboveC3$adj.p.value) ,])
-AboveCP05L
+#library(emmeans)
+#test1 <- emmeans(GhanaCmixedAbove,~Burn_history)
+#test1<-contrast(regrid(test1),method = "pairwise") #dunnett
+#AboveC1 <- as.data.frame(broom.mixed::tidy(test1, conf.int = T)) # All significant different
+#AboveC1
+#test2 <- emmeans(GhanaCmixedAbove,~Pool)
+#test2<-contrast(regrid(test2),method = "pairwise") #dunnett
+#AboveC <- as.data.frame(broom.mixed::tidy(test2, conf.int = T)) # All significant different - not tree
+#AboveC
+#test3 <- emmeans(GhanaCmixedAbove,~+Pool/Burn_history)
+#test3<-contrast(regrid(test3),method = "pairwise") #dunnett
+#AboveC3 <- as.data.frame(broom.mixed::tidy(test3, conf.int = T)) # All significant different
+#AboveC3
+#AboveCP05L<-droplevels(AboveC3[AboveC3$adj.p.value<0.05 & !is.na(AboveC3$adj.p.value) ,])
+#AboveCP05L
 
 #Pairwise contrasts accounting for df and missing values use *lsmeans*
 library(multcompView)
@@ -258,11 +256,10 @@ library(pbkrtest)
 
 #GhanaCmixedAbove<-lmer((C.stock.kg.m2^.2)~Burn_history+Pool+Pool/Burn_history+(1|clust),data = GhanaCabove)
 #anova(GhanaCmixedAbove)
-lsmeans(GhanaCmixedAbove, pairwise~Burn_history, adjust="Tukey") # Correct number of rows - but all factors signifcant - not true
-lsmeans(GhanaCmixedAbove, pairwise~Pool, adjust="Tukey") # Correct number of rows - but all factors signifcant except her and litter
+lsmeans(GhanaCmixedAbove, pairwise~Burn_history, adjust="Tukey")$contrasts
+lsmeans(GhanaCmixedAbove, pairwise~Pool, adjust="Tukey")$contrasts 
+lsmeans(GhanaCmixedAbove, pairwise~Burn_history|Pool, adjust="Tukey")$contrasts
 
-leastsquare <-lsmeans(GhanaCmixedAbove, pairwise~Burn_history|Pool, adjust="Tukey") # Correct number of rows - but all factors signifcant - not true
-leastsquare
 
 #leastsquareLT <-lsmeansLT(GhanaCmixedAbove,test.effs= "Pool/Burn_history" ) # Correct number of rows - but all factors signifcant - not true
 #leastsquareLT
@@ -341,13 +338,14 @@ sim_pool_burn <- simr::powerSim(m2, nsim=20,test = fcompare(y ~ Burn_history+Hor
 sim_pool_burn # 100%
 
 # Plotting 
-m2_as <- simr::extend(m2, along="site", n=30)
-pcBelow<-simr::powerCurve(m2_as, test = fcompare(y ~ Burn_history+Horizon),
-                          along="site",nsim=100)
-filenameBelow <- paste0("./", "Power_analysis_belowground_carbon", ".jpeg" )
-jpeg(filenameBelow ,width= 12, height = 10,units ="cm",bg ="transparent", res = 800)
-plot(pcBelow)
-dev.off()
+#m2_as <- simr::extend(m2, along="site", n=30)
+#pcBelow<-simr::powerCurve(m2_as, test = fcompare(y ~ Burn_history+Horizon),
+#                          along="site",nsim=100)
+#filenameBelow <- paste0("./Figures/", "Power_analysis_belowground_carbon", ".jpeg" )
+#jpeg(filenameBelow ,width= 12, height = 10,units ="cm",bg ="transparent", res = 800)
+#plot(pcBelow)
+#dev.off()
+
 # extract fixed effect estimates
 estimatesfixedeffects <- fixef(m1)
 # convert estimates into odds ratios
@@ -355,10 +353,6 @@ exp(estimatesfixedeffects)
 #small effect (Cohen’s d 0.2, OR = 1.68)
 #medium effect (Cohen’s d 0.5, OR = 3.47)
 #strong effect (Cohen’s d 0.8, OR = 6.71)
-
-
-
-
 
 #### LMM: Belowground mixed effect model ###
 GhanaCmixed<-lmer(C.density~Burn_history+Horizon+Horizon/Burn_history+(1|clust),na.action=na.omit, data = GhanaCbelow, REML=T)
@@ -387,17 +381,15 @@ anova(GhanaCmixed2,GhanaCmixed3) # Horizon significant
 anova(GhanaCmixed2,GhanaCmixed4) # Burn history significant
 
 # Contrasts
-lsmeans(GhanaCmixed, pairwise~Burn_history, adjust="Tukey") # Correct number of rows - but all factors signifcant - not true
-lsmeans(GhanaCmixed, pairwise~Horizon, adjust="Tukey") # Correct number of rows - but all factors signifcant - not true
-
-leastsquare2 <-lsmeans(GhanaCmixed, pairwise~Burn_history|Horizon, adjust="Tukey") # Correct number of rows - but all factors signifcant - not true
-leastsquare2
+lsmeans(GhanaCmixed, pairwise~Burn_history, adjust="Tukey")$contrasts
+lsmeans(GhanaCmixed, pairwise~Horizon, adjust="Tukey")$contrasts
+lsmeans(GhanaCmixed, pairwise~Burn_history|Horizon, adjust="Tukey")$contrasts
 
 # Contrasts (emmeans)
-library(emmeans)
-test3 <- emmeans(GhanaCmixed,~Burn_history)
-test3<-contrast(regrid(test3),method = "pairwise")
-test3
+#library(emmeans)
+#test3 <- emmeans(GhanaCmixed,~Burn_history)
+#test3<-contrast(regrid(test3),method = "pairwise")
+#test3
 #AboveC <- as.data.frame(broom.mixed::tidy(test3, conf.int = T))
 #AboveCP05L<-droplevels(AboveC[AboveC$adj.p.value<0.05 & !is.na(AboveC$adj.p.value) ,])
 #contrast                   estimate   SE    df t.ratio p.value
@@ -408,9 +400,9 @@ test3
 #Old late - Recent late      0.34264 0.0851  8.41  4.027  0.0147 
 #Recent early - Recent late  0.28075 0.0818 12.34  3.432  0.0216 
 
-test4 <- emmeans(GhanaCmixed,~Horizon)
-test4<-contrast(regrid(test4),method = "pairwise")
-test4 # 2 cm smaller compared to all other horizons
+#test4 <- emmeans(GhanaCmixed,~Horizon)
+#test4<-contrast(regrid(test4),method = "pairwise")
+#test4 # 2 cm smaller compared to all other horizons
 
 #Horizon carbon
 OldLate<-droplevels(GhanaC[GhanaC$Burn_history=="Old late",])

@@ -13,9 +13,7 @@ require(reshape2)
 #########################################################################################################################
 
 ##### IMPORT DATASET called 'Ghana.belowground' ##############
-setwd("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/")
-list.files(path = ".")
-df <- read.csv("Fire_in_the_Mole/Ghana.belowground_correct.csv", sep=",",header=TRUE)
+df <- read.csv("./Ghana.belowground_correct.csv", sep=",",header=TRUE)
 df$Burn_history <- as.factor(df$Burn_history )
 #Levels: Old late, Recent early, Recent late, Unburnt
 
@@ -157,7 +155,7 @@ ggsave("Fire_in_the_Mole/Figures/Soil.C.density_new.jpeg", width= 17, height = 2
 ###############################################################################
 
 # Import data - above C storage data for Ghana
-GhanaCabove<-read.csv("Fire_in_the_Mole/Ghana.aboveground.copy.csv", sep=",",header=TRUE)
+GhanaCabove<-read.csv("./Ghana.aboveground.copy.csv", sep=",",header=TRUE)
 
 dim(GhanaCabove) # 140 rows # 4 columns
 str(GhanaCabove)
@@ -169,7 +167,8 @@ summary(is.na(GhanaCabove))
 # Reorder factors
 GhanaCabove$Burn_history<-as.factor(GhanaCabove$Burn_history)
 GhanaCabove$Burn_history<- factor(GhanaCabove$Burn_history , levels(GhanaCabove$Burn_history)[c(2,3,1,4)])
-levels(GhanaCabove$Burn_history)
+levels(GhanaCabove$Burn_history)<-c("Recent early","Recent late","Old late","Long \n unburnt")
+
 # Seperate out Trees, Shrubs, Dead wood + litter and Herb veg
 GhanaCabove$Pool<-as.factor(GhanaCabove$Pool)
 GhanaCaboveTree<-GhanaCabove[GhanaCabove$Pool=="Tree",]
@@ -268,7 +267,7 @@ GhanaCaboveHerbvegSE<-aggregate(GhanaCaboveHerbveg$C.stock.kg.m2,by=list(Burn_hi
 #GhanaCabovelitterSE$Burn_history  <- factor(GhanaCabovelitterSE$Burn_history , levels(GhanaCabovelitterSE$Burn_history )[c(2,1,3,4)])
 
 # Create file for graph
-filename <- paste0("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/Fire_in_the_Mole/Figures/", "Aboveground.C.Ghana.colour", "_",Sys.Date(), ".tiff" )
+filename <- paste0("./Figures/", "Aboveground.C.Ghana.colour", "_",Sys.Date(), ".tiff" )
 jpeg (filename, width=17, height=10, res=400, unit="cm")
 
 # Graph parameters
@@ -309,7 +308,7 @@ par(xpd=T)
 levels(GhanaCaboveTreeX$Burn_history )
 arrows(c(1,2,3,4), GhanaCaboveTreeX$x-GhanaCaboveTreeSE$x,c(1,2,3,4), GhanaCaboveTreeX$x+GhanaCaboveTreeSE$x, length=0.05, angle=90, code=3, lwd = 1, col=c("light green","black", "tan4", "dark green"))
 points(GhanaCaboveTreeX$Burn_history , GhanaCaboveTreeX$x, col =c("light green","black", "tan4", "dark green"), pch =c(21,21,22,22), lwd =2, bg = c("light green","white", "white", "dark green"), cex =2.5,xpd = NA)
-text(GhanaCaboveTreeX$Burn_history ,GhanaCaboveTreeX$x+1.5, labels=c("ab","b","ab","b"), cex= 1.45)
+text(GhanaCaboveTreeX$Burn_history ,c(2,2,3.6,5.7), labels=c("ab","b","ab","a"), cex= 1.45)
 
 # Shrub panel
 stripchart(C.stock.kg.m2~Burn_history ,method ="jitter", data=GhanaCaboveShrub,
@@ -379,7 +378,7 @@ points(GhanaCaboveDeadwoodX$Burn_history , GhanaCaboveDeadwoodX$x, col =c("light
 
 # Axes
 axis(1, cex =.9,las=1,lwd =1.5, tck=-0.02,at=c(1:4),labels=c("","","",""))
-text(seq(1, 4, by=1), par("usr")[3] -.1, labels = c("Recent early","Recent late","Old late","Unburnt"), srt = 45, pos = 1, xpd = NA)
+text(seq(1, 4, by=1), par("usr")[3] -.075, labels = c("Recent \n early","Recent \n late","Old late","Long \n unburnt"), srt = 45, pos = 1, xpd = NA)
 text(-.75, .4, expression(paste("Carbon ( kg ",m^-2,")")),cex=1.25,xpd = NA, srt = 90)
 axis(1,yaxs="r",mgp=c(2,0.5,0),at=c(0.4,4),labels=NA, las=1, col = "black", cex =1.15,col.axis = "black", cex.axis=1.1, lwd =1.5, tck=0.00)
 axis(2, las=2,lwd =1.5, tck=-0.02)
@@ -405,7 +404,7 @@ points(GhanaCabovelitterX$Burn_history , GhanaCabovelitterX$x, col =c("light gre
 
 # Axes
 axis(1, cex =.9,las=1,lwd =1.5, tck=-0.02,at=c(1:4),labels=c("","","",""))
-text(seq(1, 4, by=1), par("usr")[3] -.025, labels = c("Recent early","Recent late","Old late","Unburnt"), srt = 45, pos = 1, xpd = NA)
+text(seq(1, 4, by=1), par("usr")[3] -.015, labels = c("Recent \n early","Recent \n late","Old late","Long \n unburnt"), srt = 45, pos = 1, xpd = NA)
 axis(1,yaxs="r",mgp=c(2,0.5,0),at=c(0.35,4),labels=NA, las=1, col = "black", cex =1.15,col.axis = "black", cex.axis=1.1, lwd =1.5, tck=0.00)
 axis(2, las=2,lwd =1.5, tck=-0.02)
 axis(2,yaxs="r",mgp=c(2,0.5,0),at=seq(-.008,.2,.2),labels=NA, las=2, col = "black", cex =1.15,col.axis = "black", cex.axis=1.1, lwd =1.5, tck=0.00)
@@ -417,12 +416,12 @@ par(xpd=T)
 
 #Xlab
 par(xpd=NA)
-text(2,-.12,"Burn season & history", cex=1.25)
+text(2,-.12,"Fire history", cex=1.25)
 par(xpd=T)
 
 # Plot legend outside last panel
 par(xpd=NA) 
-legend(6, .2,legend=c("Recent early","Recent late","Old late","Unburnt"), pch =c(21,21,22,22), col =c("light green","black", "tan4", "dark green"),
+legend(6, .2,legend=c("Recent early","Recent late","Old late","Long unburnt"), pch =c(21,21,22,22), col =c("light green","black", "tan4", "dark green"),
        pt.lwd =2, pt.bg = c("light green","white", "white", "dark green"),cex=1.15, pt.cex =2.5, y.intersp = 1.4, bty="n")
 par(xpd=T) 
 
@@ -443,10 +442,9 @@ library(car)
 SE<- function(x) sqrt(var(x,na.rm=TRUE)/length(na.omit(x)))
 ################################################################
 # Import data - above C storage data for Ghana
-setwd("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/")
-GhanaCabove<-read.csv("Fire_in_the_Mole/Ghana.aboveground.copy.csv", sep=",",header=TRUE)
+GhanaCabove<-read.csv("./Ghana.aboveground.copy.csv", sep=",",header=TRUE)
 # Import data -Belowground C storage
-GhanaCbelow<-read.csv("Fire_in_the_Mole/Ghana.belowground_correct.csv", sep=",",header=TRUE)
+GhanaCbelow<-read.csv("./Ghana.belowground_correct.csv", sep=",",header=TRUE)
 
 # Total above and below C stocks
 aboveC<-aggregate(GhanaCabove$C.stock.kg.m2, by=list(Burn_history =GhanaCabove$Burn_history ,Location=GhanaCabove$Location),na.rm=T,sum)

@@ -2,10 +2,10 @@
 # Ecosystem C storage
 ################################################################
 # Import data - above C storage data for Ghana
-GhanaCabove<-read.csv("/Users/anotherswsmith/Documents/AfricanBioServices/Master projects/Joana Awuah Adofo/Ghana.aboveground.csv", sep=",",header=TRUE)
+GhanaCabove<-read.csv("./Ghana.aboveground.csv", sep=",",header=TRUE)
 names(GhanaCabove)
 # Import data -Belowground C storage
-GhanaCbelow<-read.csv("/Users/anotherswsmith/Documents/AfricanBioServices/Master projects/Joana Awuah Adofo/Ghana.belowground.csv", sep=",",header=TRUE)
+GhanaCbelow<-read.csv("./Ghana.belowground.csv", sep=",",header=TRUE)
 names(GhanaCbelow)
 head(GhanaCbelow)
 
