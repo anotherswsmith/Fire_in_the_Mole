@@ -20,8 +20,7 @@ library(broom.mixed)
 #### Aboveground C storage ####
 ################################################################
 # Import data - above C storage data for Ghana
-setwd("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/")
-GhanaCabove<-read.csv("Fire_in_the_Mole/Ghana.aboveground.copy.csv", sep=",",header=TRUE)
+GhanaCabove<-read.csv("./Ghana.aboveground.copy.csv", sep=",",header=TRUE)
 
 dim(GhanaCabove) # 140 rows # 4 columns
 str(GhanaCabove)
@@ -37,9 +36,9 @@ GhanaCabove$Burn_history<-as.factor(GhanaCabove$Burn_history)
 GhanaCabove$Location<-as.factor(GhanaCabove$Location)
 table(GhanaCabove$Location,GhanaCabove$Burn_history) # Location and burn history non-independent
 
-# Spatial cluster coordinates
+#### Spatial cluster coordinates ####
 # Insert coordinates
-GhanaCcoords<-read.csv("Fire_in_the_Mole/Coordinates.study.sites.csv", sep=",",header=TRUE)
+GhanaCcoords<-read.csv("./Coordinates.study.sites.csv", sep=",",header=TRUE)
 # example data from the thread
 x<-GhanaCcoords$Latitude
 y<-GhanaCcoords$Longitude
@@ -135,7 +134,76 @@ levels(GhanaCabove$Pool)
 GhanaCabove$Pool<- relevel(GhanaCabove$Pool, ref = "Herb.veg")
 GhanaCabove$Pool<- relevel(GhanaCabove$Pool, ref = "Shrub")
 
-# Mixed effect model # Fixed factors Burn history nested within Depth and random factor is site
+#### Power analysis: aboveground ####
+# https://slcladal.github.io/pwr.html
+# Green, Peter, and Catriona J. MacLeod. 2016b. “Simr: An r Package for Power Analysis of Generalised Linear Mixed Models by Simulation.” Methods in Ecology and Evolution 7 (4): 493–98. https://doi.org/10.1111/2041-210X.12504.
+#the size of the effect (bigger effects are easier to detect)
+#the variability of the effect (less variability makes it easier to detect an effect), and
+#the sample size (the bigger the sample size, the easier it is to detect an effect)
+library(pwr)
+library(simr)
+library(effectsize)
+library(sjPlot)
+
+# calculate minimal sample size
+table(GhanaCabove$Burn_history,GhanaCabove$Pool)
+table(GhanaCabove$Burn_history,GhanaCabove$clust)
+table(GhanaCabove$Burn_history,GhanaCabove$Location) # 28 sites, 7 per burn history
+
+# Create unique site code based on location
+#x<-GhanaCcoords$Latitude
+#y<-GhanaCcoords$Longitude
+#xy$coords<-as.factor(with(xy, paste(coords.x1,coords.x2, sep="_")))
+#sites<-xy %>% select(Location,coords)
+#colnames(sites)[2]<-"site"
+#sites$Location<-gsub(" ", "",sites$Location)
+#GhanaCabove<-merge(GhanaCabove,sites,by=c("Location"))
+GhanaCabove$site<-GhanaCabove$Location
+
+# One way anova
+#Effect size small ≥ 0.02, medium ≥ 0.15, and large ≥ 0.35 # Cohen 1988
+pwr.anova.test(k=4*5,            # Per group
+               f=.25,          # moderate effect size
+               sig.level=.05,  # alpha/sig. level = .05
+               n=7)   # power = 0.31
+# We would only detect a minimum size effect in 31% of chances
+
+# Power analysis - LLM
+# Intercept + slopes for fixed effects 
+# (Intercept + Group, SentenceType, WordOrder, and an interaction between Group * SentenceType)
+fixed <- c(rep(.52,20)) # Effective size at .52 # Odds ratio 1.68 weak effects
+# Random intercepts for Sentence and ID
+rand <- list(0.1)
+# res. variance
+res <- 0.2 # Higher than field osbervations 
+m1 <- makeLmer(y~Burn_history+Pool+Pool/Burn_history+(1|site), 
+               fixef=fixed, 
+               VarCorr=rand, 
+               sigma=res, 
+               data=GhanaCabove)
+#sjPlot::tab_model(m1)
+sim_pool_burn <- simr::powerSim(m1, nsim=20,test = fcompare(y ~ Burn_history+Pool)) 
+sim_pool_burn # 100% power 
+
+# Plotting 
+m1_as <- simr::extend(m1, along="site", n=30)
+pcAbove<-simr::powerCurve(m1_as, test = fcompare(y ~ Burn_history+Pool),
+                      along="site",nsim=100)
+filenameAbove <- paste0("./", "Power_analysis_aboveground_carbon", ".jpeg" )
+jpeg(filenameAbove ,width= 12, height = 10,units ="cm",bg ="transparent", res = 800)
+plot(pcAbove)
+dev.off()
+
+# extract fixed effect estimates
+estimatesfixedeffects <- fixef(m1)
+# convert estimates into odds ratios
+exp(estimatesfixedeffects)
+#small effect (Cohen’s d 0.2, OR = 1.68)
+#medium effect (Cohen’s d 0.5, OR = 3.47)
+#strong effect (Cohen’s d 0.8, OR = 6.71)
+
+#### LMM: Aboveground mixed effect model #### 
+# Fixed factors Burn history nested within Depth and random factor is site
 GhanaCmixedAbove<-lmer((C.stock.kg.m2^.2)~Burn_history+Pool+Pool/Burn_history+(1|clust),
                 data = GhanaCabove)
 summary(GhanaCmixedAbove)
@@ -144,7 +212,7 @@ AIC(GhanaCmixedAbove) # 11.95403
 
 # Export summary
 GAboveCsummary <- as.data.frame(broom.mixed::tidy(GhanaCmixedAbove, conf.int = T))
-write.csv(GAboveCsummary,file="Fire_in_the_Mole/Model_summaries/GAboveCsummary.csv")
+write.csv(GAboveCsummary,file="./Model_summaries/GAboveCsummary.csv")
 
 # Residual plot
 res <- simulateResiduals(GhanaCmixedAbove, plot = T) # Excellent QQ and resid vs predict issue lower portion
@@ -207,7 +275,7 @@ leastsquare
 ################################################################
 
 # Import data - belowground C storage data for Ghana
-GhanaC<-read.csv("Fire_in_the_Mole/Ghana.belowground_correct.csv", sep=",",header=TRUE)
+GhanaC<-read.csv("./Ghana.belowground_correct.csv", sep=",",header=TRUE)
 
 dim(GhanaC) # 109 rows # 6 columns
 str(GhanaC)
@@ -239,6 +307,60 @@ bwplot(C.density ~Burn_history|Horizon, data=GhanaCbelow,
 GhanaCbelow$Horizon<- relevel(GhanaCbelow$Horizon, ref = "2")
 GhanaCbelow$Burn_history<- relevel(GhanaCbelow$Burn_history, ref = "Unburnt")
 
+#### Power analysis: belowground ####
+
+# calculate minimal sample size
+table(GhanaCbelow$Burn_history,GhanaCbelow$Horizon)
+table(GhanaCbelow$Burn_history,GhanaCbelow$clust)
+table(GhanaCbelow$Burn_history,GhanaCbelow$Location) # 28 sites, 7 per burn history
+GhanaCbelow$site<-GhanaCbelow$Location
+
+# One way anova
+#Effect size small ≥ 0.02, medium ≥ 0.15, and large ≥ 0.35 # Cohen 1988
+pwr.anova.test(k=4*4,            # Per group
+               f=.25,          # moderate effect size
+               sig.level=.05,  # alpha/sig. level = .05
+               n=7)   # power = 0.2757416
+# We would only detect a minimum size effect in 28% of chances
+
+# Power analysis - LLM
+# Intercept + slopes for fixed effects 
+# (Intercept + Group, SentenceType, WordOrder, and an interaction between Group * SentenceType)
+fixed2 <- c(rep(.52,16)) # Effective size at .52 # Odds ratio 1.68 weak effects
+# Random intercepts for Sentence and ID
+rand2 <- list(0.1)
+# res. variance
+res2 <- 0.2
+m2 <- makeLmer(y~Burn_history+Horizon+Horizon/Burn_history+(1|site), 
+               fixef=fixed2, 
+               VarCorr=rand2, 
+               sigma=res2, 
+               data=GhanaCbelow)
+#sjPlot::tab_model(m1)
+sim_pool_burn <- simr::powerSim(m2, nsim=20,test = fcompare(y ~ Burn_history+Horizon)) 
+sim_pool_burn # 100%
+
+# Plotting 
+m2_as <- simr::extend(m2, along="site", n=30)
+pcBelow<-simr::powerCurve(m2_as, test = fcompare(y ~ Burn_history+Horizon),
+                          along="site",nsim=100)
+filenameBelow <- paste0("./", "Power_analysis_belowground_carbon", ".jpeg" )
+jpeg(filenameBelow ,width= 12, height = 10,units ="cm",bg ="transparent", res = 800)
+plot(pcBelow)
+dev.off()
+# extract fixed effect estimates
+estimatesfixedeffects <- fixef(m1)
+# convert estimates into odds ratios
+exp(estimatesfixedeffects)
+#small effect (Cohen’s d 0.2, OR = 1.68)
+#medium effect (Cohen’s d 0.5, OR = 3.47)
+#strong effect (Cohen’s d 0.8, OR = 6.71)
+
+
+
+
+
+#### LMM: Belowground mixed effect model ###
 GhanaCmixed<-lmer(C.density~Burn_history+Horizon+Horizon/Burn_history+(1|clust),na.action=na.omit, data = GhanaCbelow, REML=T)
 summary(GhanaCmixed)
 vcov(GhanaCmixed) # Horizon comparison across burn histories 	
@@ -246,7 +368,7 @@ anova(GhanaCmixed) # Burn history and horizon significant
 
 # Export summary
 GBelowCsummary <- as.data.frame(broom.mixed::tidy(GhanaCmixed, conf.int = T))
-write.csv(GBelowCsummary,file="Fire_in_the_Mole/Model_summaries/GBelowCsummary.csv")
+write.csv(GBelowCsummary,file="./Model_summaries/GBelowCsummary.csv")
 
 # Residual plot
 res2 <- simulateResiduals(GhanaCmixed, plot = T) # All good
