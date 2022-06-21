@@ -6,14 +6,18 @@ require(rgdal)
 #molefires<-read.table("C:\\Users\\speed\\Desktop\\Savanna fire\\DATA FROM 2000-2016.csv",header=T,sep=',')
 molefires<-read.table("/Users/anotherswsmith/Documents/AfricanBioServices/Master projects/Joana Awuah Adofo/DATA FROM 2000-2016.csv",header=T,sep=',')
 
+
 #Only high confidence
 molefires90<-molefires[molefires$confidence>=90,]
 molefires90
+
 #Make spdf
 molespdf<-SpatialPointsDataFrame(cbind(molefires$longitude,molefires$latitude),molefires)
 mole90spdf<-SpatialPointsDataFrame(cbind(molefires90$longitude,molefires90$latitude),molefires90)
 #Get woodycover raster
-woodcov<-raster("/Users/anotherswsmith/Documents/AfricanBioServices/Master projects/Joana Awuah Adofo/MOD44B_V5_TRE.2001.PN2930.tif")
+#woodcov<-raster("/Users/anotherswsmith/Documents/AfricanBioServices/Master projects/Joana Awuah Adofo/MOD44B_V5_TRE.2001.PN2930.tif")
+woodcov<-raster("WoodyCover/Woodycover/MOD44B_V5_TRE.2001.PN2930.tif")
+
 woodcovmole<-crop(woodcov,extent(bbox(mole90spdf)))
 woodcovmole[101:200]<-NA
 NAvalue(woodcovmole)<-200
@@ -47,7 +51,7 @@ plot(stackfire)
 
 intervals <- seq(2000, 2016, 16) 
 firefreq <- cut(stackfire, intervals, include.lowest=TRUE) 
-freq(x, merge=TRUE) 
+#freq(x, merge=TRUE) 
 plot(firefreq)
 
 lastfire <- max(stackfire, na.rm=TRUE)
@@ -61,6 +65,45 @@ colors <- c("yellow","orange","red",'darkred')
 plot(lastfire,breaks=breakpoints,col=colors)
 lastfirell<-projectRaster(lastfire,crs='+proj=longlat +datum=WGS84')
 KML(lastfirell,"C:\\Users\\speed\\Desktop\\Savanna fire\\JamesFires2016",col=colors,breaks=breakpoints,overwrite=T)
+
+
+
+
+#Date of last fire
+#Convert acq date to a Date object
+molespdf$date<-as.Date(molespdf$acq_date,"%d/%m/%Y")
+
+#Set an origin (mid of sampling period)
+dateorigin<-as.Date("2016-01-07")
+molespdf$daysBeforeSampling<-as.numeric(molespdf$date-dateorigin)
+molespdf$daysBeforeSampling
+
+#Rasterize
+dayslastFireRas<-rasterize(molespdf[molespdf$confidence>=90,],field='daysBeforeSampling',woodcovmole,fun='max')
+dayslastFireRasUTM<-projectRaster(dayslastFireRas,crs="+proj=utm +zone=30 ellps=WGS84")
+dayslastFireRasUTMag<-aggregate(dayslastFireRasUTM,4,fun='max')
+plot(dayslastFireRasUTMag)
+
+Coordinates_study_sites <- read.csv("Coordinates.study.sites.csv")
+studysitecoordinatesspdf<-SpatialPointsDataFrame(cbind(Coordinates_study_sites$Longitude,Coordinates_study_sites$Latitude),
+                                                 proj4string=CRS('+proj=longlat +datum=WGS84 +no_defs'),Coordinates_study_sites)
+plot(dayslastFireRasUTMag)
+studysitecoordinatesspdfUTM<-spTransform(studysitecoordinatesspdf,CRS=CRS("+proj=utm +zone=30 ellps=WGS84"))
+points(studysitecoordinatesspdfUTM)
+studysitecoordinatesspdfUTM$lastFireDaysBeforeSampling<-extract(dayslastFireRasUTMag,studysitecoordinatesspdfUTM)
+#studysitecoordinatesspdfUTM$lastFireYear<-extract(dayslastFireRasUTMag,studysitecoordinatesspdfUTM)
+
+studysitecoordinatesspdfUTM$dateoflastFire<-as.Date(studysitecoordinatesspdfUTM$lastFireDaysBeforeSampling,origin = dateorigin)
+
+View(studysitecoordinatesspdfUTM@data)
+boxplot(studysitecoordinatesspdfUTM$lastFireDaysBeforeSampling~studysitecoordinatesspdfUTM$Type)
+
+
+
+
+
+
+
 
 road1<-readOGR("C:\\Users\\speed\\Desktop\\Savanna fire\\Roads",'ConnectRoad')
 road2<-readOGR("C:\\Users\\speed\\Desktop\\Savanna fire\\Roads",'LoopRoad')
@@ -159,6 +202,32 @@ plot(lastmanagedfirell,main='Most Recent Early Fire')
 lines(MoleRoads)
 
 
+#Set an origin (mid of sampling period)
+dateorigin<-as.Date("2016-07-07")
+manfires$daysBeforeSampling<-as.numeric(manfires$date-dateorigin)
+manfires$daysBeforeSampling
+
+#Rasterize
+dayslastManagedFire<-rasterize(manfires,field='daysBeforeSampling',woodcovmole,fun='max')
+dayslastManagedFireUTM<-projectRaster(dayslastManagedFire,crs="+proj=utm +zone=30 ellps=WGS84",method='ngb')
+dayslastManagedFireUTMag<-aggregate(dayslastManagedFireUTM,4,fun='max')
+plot(dayslastManagedFireUTMag)
+
+Coordinates_study_sites <- read.csv("Coordinates.study.sites.csv")
+studysitecoordinatesspdf<-SpatialPointsDataFrame(cbind(Coordinates_study_sites$Longitude,Coordinates_study_sites$Latitude),
+                                                 proj4string=CRS('+proj=longlat +datum=WGS84 +no_defs'),Coordinates_study_sites)
+plot(dayslastManagedFireUTMag)
+studysitecoordinatesspdfUTM<-spTransform(studysitecoordinatesspdf,CRS=CRS("+proj=utm +zone=30 ellps=WGS84"))
+points(studysitecoordinatesspdfUTM)
+studysitecoordinatesspdfUTM$lastManagedFireDaysBeforeSampling<-extract(dayslastManagedFireUTMag,studysitecoordinatesspdfUTM)
+studysitecoordinatesspdfUTM$lastManagedFireDate<-as.Date(studysitecoordinatesspdfUTM$lastManagedFireDaysBeforeSampling,origin = dateorigin)
+View(studysitecoordinatesspdfUTM@data)
+
+#One fire has the wrong year so omit this from calculation
+mean(studysitecoordinatesspdfUTM$lastManagedFireDaysBeforeSampling[studysitecoordinatesspdfUTM$Type=="Recent_early season"& abs(studysitecoordinatesspdfUTM$lastManagedFireDaysBeforeSampling)<2000])
+sd(studysitecoordinatesspdfUTM$lastManagedFireDaysBeforeSampling[studysitecoordinatesspdfUTM$Type=="Recent_early season"& abs(studysitecoordinatesspdfUTM$lastManagedFireDaysBeforeSampling)<2000])
+
+
 #Latefires
 yearlylatefires<-list()
 yearlylatefiresraster<-list()
@@ -200,6 +269,26 @@ lines(MoleRoads,lwd=2,col='blue')
 
 writeRaster(lastlatefirell,'S:\\Supervision\\Savanna fire\\lastlatefire.tif')
 writeRaster(lastmanagedfirell,'S:\\Supervision\\Savanna fire\\lastearlyfire.tif')
+
+
+#Rasterize
+dayslastLateFire<-rasterize(latefires[latefires$YEAR<2016   & latefires$Month<=4,],field='daysBeforeSampling',woodcovmole,fun=max)
+dayslastLateFireUTM<-projectRaster(dayslastLateFire,crs="+proj=utm +zone=30 ellps=WGS84",method="ngb")
+dayslastLateFireUTMag<-aggregate(dayslastLateFireUTM,4,fun=max)
+plot(dayslastLateFireUTMag)
+
+plot(dayslastLateFireUTMag)
+points(studysitecoordinatesspdfUTM)
+studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling<-extract(dayslastLateFireUTMag,studysitecoordinatesspdfUTM)
+studysitecoordinatesspdfUTM$lastLateFireDate<-as.Date(studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling, origin = dateorigin)
+View(studysitecoordinatesspdfUTM@data)
+
+mean(studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling[studysitecoordinatesspdfUTM$Type=="Recent_late season"& abs(studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling)<3000],na.rm=T)
+sd(studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling[studysitecoordinatesspdfUTM$Type=="Recent_late season"& abs(studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling)<3000])
+
+mean(studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling[studysitecoordinatesspdfUTM$Type=="Old_late"],na.rm=T)
+sd(studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling[studysitecoordinatesspdfUTM$Type=="Old_late"],na.rm=T)
+
 
 
 #ExtractAllFires
