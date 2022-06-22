@@ -129,11 +129,13 @@ aggregate(Days_since_fire~Type,DaysSinceFire,mean)
 #moleroadrastutm<-projectRaster(moleroadrast,crs="+proj=utm +zone=30 ellps=WGS84")
 #moleroad3km<-aggregate(moleroadrastutm,10)
 
+
+#Cells within 3km of the roads
+stackfirell<-projectRaster(stackfire,crs="+proj=longlat")
+
 #Woodycover
 woodcovmolestack<-projectRaster(woodcovmole,stackfirell)
 
-#Cells within 3km of the roads
-#stackfirell<-projectRaster(stackfire,crs="+proj=longlat")
 #e1<-as.data.frame(extract(stack(stackfirell,woodcovmolestack),MoleRoads,buffer=3000,cellnumbers=T))
 #e1<-as.data.frame(extract(stackfirell,sppoints,cellnumbers=T))
 #siteselection<-cbind(xyFromCell(stackfirell[[1]],e1$cell),e1)
@@ -265,6 +267,9 @@ plot(lastlatefirell,breaks=breakpoints,col=colors,main='Late Fires')
 #writeRaster(lastlatefirell,'S:\\Supervision\\Savanna fire\\lastlatefire.tif')
 #writeRaster(lastmanagedfirell,'S:\\Supervision\\Savanna fire\\lastearlyfire.tif')
 
+latefires$date<-as.Date(latefires@data$acq_date,"%d/%m/%y")
+latefires$daysBeforeSampling<-as.numeric(latefires$date-dateorigin)
+latefires$daysBeforeSampling
 
 #Rasterize
 dayslastLateFire<-rasterize(latefires[latefires$YEAR<2016   & latefires$Month<=4,],field='daysBeforeSampling',woodcovmole,fun=max)
