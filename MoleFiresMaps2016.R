@@ -4,7 +4,7 @@ require(rgdal)
 
 #Molefires from Joana including 2016
 #molefires<-read.table("C:\\Users\\speed\\Desktop\\Savanna fire\\DATA FROM 2000-2016.csv",header=T,sep=',')
-molefires<-read.table("/Users/anotherswsmith/Documents/AfricanBioServices/Master projects/Joana Awuah Adofo/DATA FROM 2000-2016.csv",header=T,sep=',')
+molefires<-read.table("./Fire_mapping/DATA FROM 2000-2016.csv",header=T,sep=',')
 
 
 #Only high confidence
@@ -16,7 +16,7 @@ molespdf<-SpatialPointsDataFrame(cbind(molefires$longitude,molefires$latitude),m
 mole90spdf<-SpatialPointsDataFrame(cbind(molefires90$longitude,molefires90$latitude),molefires90)
 #Get woodycover raster
 #woodcov<-raster("/Users/anotherswsmith/Documents/AfricanBioServices/Master projects/Joana Awuah Adofo/MOD44B_V5_TRE.2001.PN2930.tif")
-woodcov<-raster("WoodyCover/Woodycover/MOD44B_V5_TRE.2001.PN2930.tif")
+woodcov<-raster("./Fire_mapping/MOD44B_V5_TRE.2001.PN2930.tif")
 
 woodcovmole<-crop(woodcov,extent(bbox(mole90spdf)))
 woodcovmole[101:200]<-NA
@@ -58,20 +58,20 @@ lastfire <- max(stackfire, na.rm=TRUE)
 lastfire
 plot(lastfire)
 lastfire2<-lastfire
-writeRaster(lastfire,'S:\\Supervision\\Savanna fire\\MoleYearLastFire',format='GTiff')
+#writeRaster(lastfire,'S:\\Supervision\\Savanna fire\\MoleYearLastFire',format='GTiff')
 
 breakpoints <- c(2000,2005,2010,2015,2016)
 colors <- c("yellow","orange","red",'darkred')
 plot(lastfire,breaks=breakpoints,col=colors)
 lastfirell<-projectRaster(lastfire,crs='+proj=longlat +datum=WGS84')
-KML(lastfirell,"C:\\Users\\speed\\Desktop\\Savanna fire\\JamesFires2016",col=colors,breaks=breakpoints,overwrite=T)
+#KML(lastfirell,"C:\\Users\\speed\\Desktop\\Savanna fire\\JamesFires2016",col=colors,breaks=breakpoints,overwrite=T)
 
 
 
 
 #Date of last fire
 #Convert acq date to a Date object
-molespdf$date<-as.Date(molespdf$acq_date,"%d/%m/%Y")
+molespdf$date<-as.Date(molespdf$acq_date,"%d/%m/%y")
 
 #Set an origin (mid of sampling period)
 dateorigin<-as.Date("2016-01-07")
@@ -97,65 +97,61 @@ studysitecoordinatesspdfUTM$dateoflastFire<-as.Date(studysitecoordinatesspdfUTM$
 
 View(studysitecoordinatesspdfUTM@data)
 boxplot(studysitecoordinatesspdfUTM$lastFireDaysBeforeSampling~studysitecoordinatesspdfUTM$Type)
+DaysSinceFire<-data.frame(cbind(studysitecoordinatesspdfUTM@data$Location,studysitecoordinatesspdfUTM@data$Type,studysitecoordinatesspdfUTM@data$lastFireDaysBeforeSampling))
+colnames(DaysSinceFire)[1:3]<-c("Location", "Type","Days_since_fire")
+DaysSinceFire$Days_since_fire<-as.numeric(DaysSinceFire$Days_since_fire)
+aggregate(Days_since_fire~Type,DaysSinceFire,mean)
 
-
-
-
-
-
-
-
-road1<-readOGR("C:\\Users\\speed\\Desktop\\Savanna fire\\Roads",'ConnectRoad')
-road2<-readOGR("C:\\Users\\speed\\Desktop\\Savanna fire\\Roads",'LoopRoad')
-road3<-readOGR("C:\\Users\\speed\\Desktop\\Savanna fire\\Roads",'MoleRoad')
-road4<-readOGR("C:\\Users\\speed\\Desktop\\Savanna fire\\Roads",'SmallRoad')
-allroads<-c(road1,road2,road3,road4)
+#### Access to roads for field sampling ####
+#road1<-readOGR("C:\\Users\\speed\\Desktop\\Savanna fire\\Roads",'ConnectRoad')
+#road2<-readOGR("C:\\Users\\speed\\Desktop\\Savanna fire\\Roads",'LoopRoad')
+#road3<-readOGR("C:\\Users\\speed\\Desktop\\Savanna fire\\Roads",'MoleRoad')
+#road4<-readOGR("C:\\Users\\speed\\Desktop\\Savanna fire\\Roads",'SmallRoad')
+#allroads<-c(road1,road2,road3,road4)
 
 #  Get the Lines objects which contain multiple 'lines'
-ll0 <- lapply( allroads , function(x) `@`(x , "lines") )
+#ll0 <- lapply( allroads , function(x) `@`(x , "lines") )
 #  Extract the individual 'lines'
-ll1 <- lapply( unlist( ll0 ) , function(y) `@`(y,"Lines") )
+#ll1 <- lapply( unlist( ll0 ) , function(y) `@`(y,"Lines") )
 #  Combine them into a single SpatialLines object
-MoleRoads <- SpatialLines( list( Lines( unlist( ll1 ) , ID = 1 ) ),(CRS("+proj=longlat")) )
+#MoleRoads <- SpatialLines( list( Lines( unlist( ll1 ) , ID = 1 ) ),(CRS("+proj=longlat")) )
 
-plot(lastfirell,breaks=breakpoints,col=colors)
-lines(MoleRoads)
+#plot(lastfirell,breaks=breakpoints,col=colors)
+#lines(MoleRoads)
 
-coordinates(MoleRoads)
-crdl0 <- coordinates(MoleRoads)
-crdl1 <- sapply(crdl0, function(x) do.call("rbind", x))
-sppoints<-SpatialPoints(data.frame(matrix(crdl1,ncol=2,byrow=F)),CRS("+proj=longlat"))
+#coordinates(MoleRoads)
+#crdl0 <- coordinates(MoleRoads)
+#crdl1 <- sapply(crdl0, function(x) do.call("rbind", x))
+#sppoints<-SpatialPoints(data.frame(matrix(crdl1,ncol=2,byrow=F)),CRS("+proj=longlat"))
 
 
-moleroadrast<-rasterize(MoleRoads,woodcovmole,1)
-moleroadrastutm<-projectRaster(moleroadrast,crs="+proj=utm +zone=30 ellps=WGS84")
-moleroad3km<-aggregate(moleroadrastutm,10)
+#moleroadrast<-rasterize(MoleRoads,woodcovmole,1)
+#moleroadrastutm<-projectRaster(moleroadrast,crs="+proj=utm +zone=30 ellps=WGS84")
+#moleroad3km<-aggregate(moleroadrastutm,10)
 
 #Woodycover
 woodcovmolestack<-projectRaster(woodcovmole,stackfirell)
 
-
 #Cells within 3km of the roads
-stackfirell<-projectRaster(stackfire,crs="+proj=longlat")
-e1<-as.data.frame(extract(stack(stackfirell,woodcovmolestack),MoleRoads,buffer=3000,cellnumbers=T))
+#stackfirell<-projectRaster(stackfire,crs="+proj=longlat")
+#e1<-as.data.frame(extract(stack(stackfirell,woodcovmolestack),MoleRoads,buffer=3000,cellnumbers=T))
 #e1<-as.data.frame(extract(stackfirell,sppoints,cellnumbers=T))
-siteselection<-cbind(xyFromCell(stackfirell[[1]],e1$cell),e1)
-names(siteselection)[4:20]<-2000:2016
-names(siteselection)[1:2]<-c('long','lat')
-names(siteselection)[21]<-'WoodyCover'
-siteselection[is.na(siteselection)]<-0
-siteselection$lastfire<-apply(siteselection[,4:20],1,max,na.rm=T)
-siteselection$classification<-siteselection$lastfire
-siteselection$classification[siteselection$lastfire>=2015]<-'1 year'
-siteselection$classification[siteselection$lastfire>=2010 & siteselection$lastfire<2015]<-'2-4 years'
-siteselection$classification[siteselection$lastfire>=2005 & siteselection$lastfire<2010]<-'5-10 years'
-siteselection$classification[siteselection$lastfire>=2000 & siteselection$lastfire<2005]<-'10-15 years'
-siteselection$classification[siteselection$lastfire<2000]<-'NotKnownBurnt'
-siteselection$name<-paste(siteselection$classification,siteselection$cell,sep='_')
-head(siteselection)
+#siteselection<-cbind(xyFromCell(stackfirell[[1]],e1$cell),e1)
+#names(siteselection)[4:20]<-2000:2016
+#names(siteselection)[1:2]<-c('long','lat')
+#names(siteselection)[21]<-'WoodyCover'
+#siteselection[is.na(siteselection)]<-0
+#siteselection$lastfire<-apply(siteselection[,4:20],1,max,na.rm=T)
+#siteselection$classification<-siteselection$lastfire
+#siteselection$classification[siteselection$lastfire>=2015]<-'1 year'
+#siteselection$classification[siteselection$lastfire>=2010 & siteselection$lastfire<2015]<-'2-4 years'
+#siteselection$classification[siteselection$lastfire>=2005 & siteselection$lastfire<2010]<-'5-10 years'
+#siteselection$classification[siteselection$lastfire>=2000 & siteselection$lastfire<2005]<-'10-15 years'
+#siteselection$classification[siteselection$lastfire<2000]<-'NotKnownBurnt'
+#siteselection$name<-paste(siteselection$classification,siteselection$cell,sep='_')
+#head(siteselection)
 
-write.csv(siteselection,'C:\\Users\\speed\\Desktop\\Savanna fire\\JamesSiteSelection.csv',row.names=F)
-
+#write.csv(siteselection,'C:\\Users\\speed\\Desktop\\Savanna fire\\JamesSiteSelection.csv',row.names=F)
 
 #Managed fires and late fires
 barplot(with(molefires90,tapply(confidence,list(Month),length)),main='Distribution of fires (90%conf) by month')
@@ -168,12 +164,11 @@ barplot(with(molefires90,tapply(confidence,list(FireType,YEAR),length)),legend=T
 names(molefires90)
 aggregate(confidence~YEAR,data=molefires90,length)
 
-
 #Raterize both fire types
 manfires<-mole90spdf[mole90spdf$ManagedFire==1,]
 latefires<-mole90spdf[mole90spdf$LateFire==1,]
 
-#Managedfires
+#Managed fires
 yearlymanagedfires<-list()
 yearlymanagedfiresraster<-list()
 yearlymanagedfiresrasterutm<-list()
@@ -199,11 +194,11 @@ lastmanagedfire
 plot(lastmanagedfire)
 lastmanagedfirell<-projectRaster(lastmanagedfire,crs='+proj=longlat +datum=WGS84')
 plot(lastmanagedfirell,main='Most Recent Early Fire')
-lines(MoleRoads)
-
+#lines(MoleRoads)
 
 #Set an origin (mid of sampling period)
 dateorigin<-as.Date("2016-07-07")
+manfires$date<-as.Date(manfires@data$acq_date,"%d/%m/%y")
 manfires$daysBeforeSampling<-as.numeric(manfires$date-dateorigin)
 manfires$daysBeforeSampling
 
@@ -221,12 +216,12 @@ studysitecoordinatesspdfUTM<-spTransform(studysitecoordinatesspdf,CRS=CRS("+proj
 points(studysitecoordinatesspdfUTM)
 studysitecoordinatesspdfUTM$lastManagedFireDaysBeforeSampling<-extract(dayslastManagedFireUTMag,studysitecoordinatesspdfUTM)
 studysitecoordinatesspdfUTM$lastManagedFireDate<-as.Date(studysitecoordinatesspdfUTM$lastManagedFireDaysBeforeSampling,origin = dateorigin)
-View(studysitecoordinatesspdfUTM@data)
+#View(studysitecoordinatesspdfUTM@data)
 
 #One fire has the wrong year so omit this from calculation
 mean(studysitecoordinatesspdfUTM$lastManagedFireDaysBeforeSampling[studysitecoordinatesspdfUTM$Type=="Recent_early season"& abs(studysitecoordinatesspdfUTM$lastManagedFireDaysBeforeSampling)<2000])
 sd(studysitecoordinatesspdfUTM$lastManagedFireDaysBeforeSampling[studysitecoordinatesspdfUTM$Type=="Recent_early season"& abs(studysitecoordinatesspdfUTM$lastManagedFireDaysBeforeSampling)<2000])
-
+#-270.6667 +/- 148.7369
 
 #Latefires
 yearlylatefires<-list()
@@ -256,19 +251,19 @@ plot(lastlatefire)
 
 lastlatefirell<-projectRaster(lastlatefire,crs='+proj=longlat +datum=WGS84')
 plot(lastlatefirell,main='Most Recent Late Fire')
-lines(MoleRoads)
+#lines(MoleRoads)
 
 breakpoints <- c(2000,2005,2010,2012,2014,2016)
 colors <- c("yellow","orange","red",'darkred','black')
 x11(24,16)
 par(mfrow=c(1,2))
 plot(lastmanagedfirell,breaks=breakpoints,col=colors,main="Early Fires")
-lines(MoleRoads,lwd=2,col='blue')
+#lines(MoleRoads,lwd=2,col='blue')
 plot(lastlatefirell,breaks=breakpoints,col=colors,main='Late Fires')
-lines(MoleRoads,lwd=2,col='blue')
+#lines(MoleRoads,lwd=2,col='blue')
 
-writeRaster(lastlatefirell,'S:\\Supervision\\Savanna fire\\lastlatefire.tif')
-writeRaster(lastmanagedfirell,'S:\\Supervision\\Savanna fire\\lastearlyfire.tif')
+#writeRaster(lastlatefirell,'S:\\Supervision\\Savanna fire\\lastlatefire.tif')
+#writeRaster(lastmanagedfirell,'S:\\Supervision\\Savanna fire\\lastearlyfire.tif')
 
 
 #Rasterize

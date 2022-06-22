@@ -6,9 +6,7 @@ require(rgdal)
 #########################################################################################################################
 
 #Molefires from Joana including 2016
-#molefires<-read.table("C:\\Users\\speed\\Desktop\\Savanna fire\\DATA FROM 2000-2016.csv",header=T,sep=',')
-setwd("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/")
-molefires<-read.table("Fire_in_the_Mole/Fire_mapping/DATA FROM 2000-2016.csv",header=T,sep=',')
+molefires<-read.table("./Fire_mapping/DATA FROM 2000-2016.csv",header=T,sep=',')
 
 #Only high confidence
 molefires90<-molefires[molefires$confidence>=90,]
@@ -17,7 +15,7 @@ molefires90
 molespdf<-SpatialPointsDataFrame(cbind(molefires$longitude,molefires$latitude),molefires)
 mole90spdf<-SpatialPointsDataFrame(cbind(molefires90$longitude,molefires90$latitude),molefires90)
 #Get woodycover raster
-woodcov<-raster("Fire_in_the_Mole/Fire_mapping/MOD44B_V5_TRE.2001.PN2930.tif")
+woodcov<-raster("./Fire_mapping/MOD44B_V5_TRE.2001.PN2930.tif")
 woodcovmole<-crop(woodcov,extent(bbox(mole90spdf)))
 woodcovmole[101:200]<-NA
 NAvalue(woodcovmole)<-200
@@ -340,16 +338,14 @@ library(rgeos)
 library(sf)
 #########################################################################################################################
 
-setwd("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/")
-
-lateraster<-raster('Fire_in_the_Mole/Fire_mapping/lastlatefire.tif')
-earlyraster<-raster('Fire_in_the_Mole/Fire_mapping/lastearlyfire.tif')
-lastfire<-raster('Fire_in_the_Mole/Fire_mapping/MoleYearLastFire.tif')
+lateraster<-raster('./Fire_mapping/lastlatefire.tif')
+earlyraster<-raster('./Fire_mapping/lastearlyfire.tif')
+lastfire<-raster('./Fire_mapping/MoleYearLastFire.tif')
 lastfirell<-projectRaster(lastfire,crs='+proj=longlat +datum=WGS84')
 levelplot(stack(lateraster,earlyraster),margin=F,rasterTheme=YlOrRdTheme)
 
 # Count cells from raster 
-nps<-readOGR('Fire_in_the_Mole/Fire_mapping/WDPA_Feb2016_GHA-shapefile-polygons','WDPA_Feb2016_GHA-shapefile-polygons') # All national parks ghana
+nps<-readOGR('./Fire_mapping/WDPA_Feb2016_GHA-shapefile-polygons','WDPA_Feb2016_GHA-shapefile-polygons') # All national parks ghana
 levels(as.factor(nps$NAME)) #Mole
 npsMOLE<-nps[nps$NAME=="Mole",]
 extent(npsMOLE)
@@ -423,13 +419,10 @@ library(rnaturalearthdata)
 library(rnaturalearthhires)
 #########################################################################################################################
 
-#Working directory
-setwd("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/")
-
 # Fire layers
-lateraster<-raster('Fire_in_the_Mole/Fire_mapping/lastlatefire.tif')
-earlyraster<-raster('Fire_in_the_Mole/Fire_mapping/lastearlyfire.tif')
-lastfire<-raster('Fire_in_the_Mole/Fire_mapping/MoleYearLastFire.tif')
+lateraster<-raster('./Fire_mapping/lastlatefire.tif')
+earlyraster<-raster('./Fire_mapping/lastearlyfire.tif')
+lastfire<-raster('./Fire_mapping/MoleYearLastFire.tif')
 lastfirell<-projectRaster(lastfire,crs='+proj=longlat +datum=WGS84')
 levelplot(stack(lateraster,earlyraster),margin=F,rasterTheme=YlOrRdTheme)
 
@@ -543,7 +536,7 @@ p3<-levelplot(studystack_c,par.settings='YlOrRdTheme',#at=brksUniv, colorkey=myC
 #grid.arrange(p1,p2,p3)
 #dev.off()
 
-filename <- paste0("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/Fire_in_the_Mole/Fire_mapping/", "Fig_fire_map",".jpeg" )
+filename <- paste0("./Fire_mapping/", "Fig_fire_map",".jpeg" )
 jpeg(filename,width= 24, height = 18,units ="cm",bg ="transparent", res = 600)
 grid.arrange(p1,p2,p3)
 dev.off()
@@ -557,8 +550,7 @@ p0
 combo <- c(p1,p0,p2,p3)
 ## rearrange in pairs
 library(svglite)# Save as SVG
-setwd("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/Fire_in_the_Mole/Fire_mapping/")
-svg("Fire_map_MoleNP.svg",width= 10, height = 8)
+svg("./Fire_map_MoleNP.svg",width= 10, height = 8)
 update(combo, scales = list(draw = T),
        names.attr=c('Late fires','Early fires'),
        layout = c(2, 3), between = list(x = c(0, 0.5), y = 0.5))
