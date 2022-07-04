@@ -417,6 +417,7 @@ cellStats(mMOLE1, function(i, ...) sum(is.na(i))) # 697
 library(rnaturalearth)
 library(rnaturalearthdata)
 library(rnaturalearthhires)
+library(devtools)
 #########################################################################################################################
 
 # Fire layers
@@ -437,8 +438,8 @@ makeTransparent<-function(someColor, alpha=75)
 #Mole NP
 #gha<-getData('GADM',country='GHA',level=1)
 gha<-ne_states(country = 'ghana')#  scale = 'medium')
-nps<-readOGR('Fire_in_the_Mole/Fire_mapping/WDPA_Feb2016_GHA-shapefile-polygons','WDPA_Feb2016_GHA-shapefile-polygons')
-studypoints<-read.csv('Fire_in_the_Mole/Fire_mapping/Coordinates.study.sites.csv')
+nps<-readOGR('./Fire_mapping/WDPA_Feb2016_GHA-shapefile-polygons','WDPA_Feb2016_GHA-shapefile-polygons')
+studypoints<-read.csv('./Fire_mapping/Coordinates.study.sites.csv')
 
 #Study sites
 spsp<-SpatialPointsDataFrame(cbind(studypoints$Longitude,studypoints$Latitude),studypoints,proj4string = crs(lateraster))
@@ -455,7 +456,7 @@ levelplot(stack(lateraster,earlyraster),margin=F,rasterTheme=YlOrRdTheme)+
   layer(sp.points(spsp[spsp$Type=='Unburnt',],pch=1))+
   layer(sp.polygons(bb))
 
-plot(nps,add=T)
+#plot(nps,add=T)
 
 studystack<-stack(lateraster,earlyraster)
 names(studystack)<-c('Late fires','Early fires')
@@ -502,7 +503,7 @@ lattice.options(
   layout.widths=list(left.padding=list(x=0), right.padding=list(x=0))
 )
 p1<-levelplot(lastfire_ext,margin=F,par.settings=YlOrRdTheme,#at=brksUniv, colorkey=myColorkey,
-              key = list(space = 'left', text = list(c('Unburnt','Old_late', 'Recent_early season', 'Recent_late season'))
+              key = list(space = 'left', text = list(c('Long unburned','Old late-season', 'Recent early-season', 'Recent late-season'))
                          , points = list(pch=c(15,0,16,1),lwd=2,col=c('darkgreen','tan4','lightgreen','black'))))+
   latticeExtra::layer(sp.polygons(nps[nps$NAME=='Mole',]))+
   latticeExtra::layer(sp.polygons(gha))+
@@ -550,7 +551,7 @@ p0
 combo <- c(p1,p0,p2,p3)
 ## rearrange in pairs
 library(svglite)# Save as SVG
-svg("./Fire_map_MoleNP.svg",width= 10, height = 8)
+svg("./Fire_mapping/Fire_map_MoleNP.svg",width= 10, height = 8)
 update(combo, scales = list(draw = T),
        names.attr=c('Late fires','Early fires'),
        layout = c(2, 3), between = list(x = c(0, 0.5), y = 0.5))

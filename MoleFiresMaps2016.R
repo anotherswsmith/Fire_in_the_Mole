@@ -66,9 +66,6 @@ plot(lastfire,breaks=breakpoints,col=colors)
 lastfirell<-projectRaster(lastfire,crs='+proj=longlat +datum=WGS84')
 #KML(lastfirell,"C:\\Users\\speed\\Desktop\\Savanna fire\\JamesFires2016",col=colors,breaks=breakpoints,overwrite=T)
 
-
-
-
 #Date of last fire
 #Convert acq date to a Date object
 molespdf$date<-as.Date(molespdf$acq_date,"%d/%m/%y")
@@ -283,12 +280,14 @@ studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling<-extract(dayslastLate
 studysitecoordinatesspdfUTM$lastLateFireDate<-as.Date(studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling, origin = dateorigin)
 View(studysitecoordinatesspdfUTM@data)
 
+studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling[studysitecoordinatesspdfUTM$Type=="Recent_late season"& abs(studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling)<3000]
 mean(studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling[studysitecoordinatesspdfUTM$Type=="Recent_late season"& abs(studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling)<3000],na.rm=T)
 sd(studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling[studysitecoordinatesspdfUTM$Type=="Recent_late season"& abs(studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling)<3000])
 
+studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling[studysitecoordinatesspdfUTM$Type=="Old_late"]
 mean(studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling[studysitecoordinatesspdfUTM$Type=="Old_late"],na.rm=T)
 sd(studysitecoordinatesspdfUTM$lastLateFireDaysBeforeSampling[studysitecoordinatesspdfUTM$Type=="Old_late"],na.rm=T)
-
+# -4903 -2703 -4563 -1639   NaN -1648 -2367
 
 
 #ExtractAllFires

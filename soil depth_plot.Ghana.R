@@ -15,7 +15,7 @@ require(reshape2)
 ##### IMPORT DATASET called 'Ghana.belowground' ##############
 df <- read.csv("./Ghana.belowground_correct.csv", sep=",",header=TRUE)
 df$Burn_history <- as.factor(df$Burn_history )
-#Levels: Old late, Recent early, Recent late, Unburnt
+#Levels: Old late, Recent early, Recent late, Long uburned
 
 # Reorder fire histories
 # (1) Recent early, (2) Recent late, (3) Old late, (4) Unburnt
@@ -97,15 +97,16 @@ colourset<-paste(levels(as.factor(df2$pt.col))) # Leveling does not relate to Bu
 df2
 
 df2$fDepth<-as.factor(df2$Depth)
-levels(df2$fDepth)<-c("1","4.5","9.5","14.5")
-df2$Depth<-as.numeric(as.character(df2$fDepth))
+#levels(df2$fDepth)<-c("1","4.5","9.5","14.5")
+#df2$Depth<-as.numeric(as.character(df2$fDepth))
+df2$Depth
+levels(df2$Burn_history)<-c("Recent early-season","Recent late-season", "Old late-season", "Long unburned")
 
 gp <- ggplot(df2, aes(x=Depth, y=SOC, fill=Burn_history , colour=Burn_history ))
-gp <- gp +geom_segment(x=-1.2, xend=-1.2, y=0,yend=1.9, size = 28, colour="grey96", alpha=.1,lineend = "butt", show.legend = F)
-gp <- gp +geom_segment(x=-4.85, xend=-4.85, y=0,yend=1.9, size = 56, colour="grey96", alpha=.5,lineend = "butt", show.legend = F)
-gp <- gp +geom_segment(x=-9.85, xend=-9.85, y=0,yend=1.9, size = 56, colour="grey96", alpha=.5,lineend = "butt", show.legend = F)
-gp <- gp +geom_segment(x=-14.85, xend=-14.85, y=0,yend=1.9, size = 56, colour="grey96", alpha=.5,lineend = "butt", show.legend = F)
-
+#gp <- gp +geom_segment(x=-1.2, xend=-1.2, y=0,yend=1.9, size = 28, colour="grey96", alpha=.1,lineend = "butt", show.legend = F)
+#gp <- gp +geom_segment(x=-4.85, xend=-4.85, y=0,yend=1.9, size = 56, colour="grey96", alpha=.5,lineend = "butt", show.legend = F)
+#gp <- gp +geom_segment(x=-9.85, xend=-9.85, y=0,yend=1.9, size = 56, colour="grey96", alpha=.5,lineend = "butt", show.legend = F)
+#gp <- gp +geom_segment(x=-14.85, xend=-14.85, y=0,yend=1.9, size = 56, colour="grey96", alpha=.5,lineend = "butt", show.legend = F)
 gp <- gp + geom_line(stat="identity",size=1.1, position=pd) 
 gp <- gp+geom_errorbar(stat="identity",aes(ymax=SOC+SE, ymin=SOC-SE), 
                   width=.1, size=1.1,position=pd) 
@@ -116,9 +117,9 @@ gp <- gp+scale_fill_manual("Burn season & history",values=c("light green", "whit
 gp <- gp+scale_shape_manual("Burn season & history",values=c(21,21,22,22)) 
 #gp <- gp+geom_text(aes(size=12,label=df2$Pval, fontface="bold"),
 #           check_overlap=T,hjust=-1, vjust=1,show.legend = F)
-gp <- gp+ylab(expression(paste("Soil carbon ( kg ",m^-2,")")))+xlab("Depth (cm)")
-gp <- gp+scale_x_reverse(position = "bottom",limits=c(17,0))
-gp <- gp+scale_y_continuous(limits=c(0,1.9),breaks=c(0,.5,1,1.5),position = "right")
+gp <- gp+ylab(expression(paste("Soil carbon (kg C ",m^-2,")")))+xlab("Depth (cm)")
+gp <- gp+scale_x_reverse(position = "bottom",limits=c(18,0),breaks=c(0,2,7,12,17),labels=c(0,2,7,12,17), expand=c(0,0))
+gp <- gp+scale_y_continuous(limits=c(0,1.6),breaks=c(0,.5,1,1.5),position = "right", expand=c(0,0))
 gp <- gp+coord_flip()
 
 gp<- gp+ theme_bw() +
@@ -130,9 +131,12 @@ gp<- gp+ theme_bw() +
         ,panel.grid.major.y = element_blank() 
         ,axis.text=element_text(size=12)
         ,axis.title=element_text(size=14)
-        ,legend.text=element_text(size=12)) +
-  theme(axis.line = element_line(color = 'black')) +
-  theme(legend.position = "bottom")
+        ,legend.text=element_text(size=12)
+        ,legend.position = "right"
+        ,legend.justification = "top"
+        ,legend.direction="vertical"
+        ,legend.title=element_text(size=13)
+        ,axis.line = element_line(color = 'black'))
 gp
 
 # make a table of means
@@ -146,8 +150,7 @@ gp
 #tbl <- tableGrob(df2, rows=NULL, theme=tt)  # make the table
 
 # Export - remember to set working directory
-setwd("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/")
-ggsave("Fire_in_the_Mole/Figures/Soil.C.density_new.jpeg", width= 17, height = 20,units ="cm",
+ggsave("./Figures/Soil.C.density_new.jpeg", width= 16, height = 14,units ="cm",
        dpi = 400, limitsize = TRUE)
 
 ###############################################################################
@@ -167,7 +170,7 @@ summary(is.na(GhanaCabove))
 # Reorder factors
 GhanaCabove$Burn_history<-as.factor(GhanaCabove$Burn_history)
 GhanaCabove$Burn_history<- factor(GhanaCabove$Burn_history , levels(GhanaCabove$Burn_history)[c(2,3,1,4)])
-levels(GhanaCabove$Burn_history)<-c("Recent early","Recent late","Old late","Long \n unburnt")
+levels(GhanaCabove$Burn_history)<-c("Recent early","Recent late","Old late","Long \n unburned")
 
 # Seperate out Trees, Shrubs, Dead wood + litter and Herb veg
 GhanaCabove$Pool<-as.factor(GhanaCabove$Pool)
@@ -279,11 +282,11 @@ stripchart(C.stock.kg.m2~Burn_history ,method ="jitter", data=GhanaCaboveTree,
            axes=F,mgp=c(2,.5,0),bg="gray90", col="gray75",
            ylim=c(0,8), xlim=c(.5,4.5), cex=1.75,cex.lab=1.25,vertical=T,
            pch=c(21,21,22,22),
-           xlab="", ylab=expression(paste("Carbon ( kg ",m^-2,")")),
+           xlab="", ylab=expression(paste("Carbon ( kg C ",m^-2,")")),
            main="")
 axis(1, cex =.9,las=1,lwd =1.5, tck=-0.02,at=c(1:4),labels=c("","","",""))
 #text(seq(1, 4, by=1), par("usr")[3] - 0.9, labels = c("Recent early","Recent late","Old late","Unburnt"),pos = 1,xpd = NA, srt = 45)
-text(-.75, 4, expression(paste("Carbon ( kg ",m^-2,")")),cex=1.25,xpd = NA, srt = 90)
+text(-.75, 4, expression(paste("Carbon ( kg C ",m^-2,")")),cex=1.25,xpd = NA, srt = 90)
 axis(1,yaxs="r",mgp=c(2,0.5,0),at=c(0.3,4),labels=NA, las=1, col = "black", cex =1.15,col.axis = "black", cex.axis=1.1, lwd =1.5, tck=0.00)
 axis(2, las=2,lwd =1.5, tck=-0.02)
 axis(2,yaxs="r",mgp=c(2,0.5,0),at=seq(-1,8,.2),labels=NA, las=2, col = "black", cex =1.15,col.axis = "black", cex.axis=1.1, lwd =1.5, tck=0.00)
@@ -367,7 +370,7 @@ stripchart(C.stock.kg.m2~Burn_history ,method ="jitter", data=GhanaCaboveDeadwoo
            axes=F,mgp=c(2,2,0), bg="gray90", col="gray75",
            ylim=c(0,.8), xlim=c(.5,4.5), cex=1.75,cex.lab=1.25,vertical=T,
            pch=c(21,21,22,22),
-           xlab="", ylab=expression(paste("Carbon ( kg ",m^-2,")")),
+           xlab="", ylab=expression(paste("Carbon ( kg C ",m^-2,")")),
            main="")
 
 #Mean points with SE - Deadwood
@@ -378,8 +381,8 @@ points(GhanaCaboveDeadwoodX$Burn_history , GhanaCaboveDeadwoodX$x, col =c("light
 
 # Axes
 axis(1, cex =.9,las=1,lwd =1.5, tck=-0.02,at=c(1:4),labels=c("","","",""))
-text(seq(1, 4, by=1), par("usr")[3] -.075, labels = c("Recent \n early","Recent \n late","Old late","Long \n unburnt"), srt = 45, pos = 1, xpd = NA)
-text(-.75, .4, expression(paste("Carbon ( kg ",m^-2,")")),cex=1.25,xpd = NA, srt = 90)
+text(seq(1, 4, by=1), par("usr")[3] -.109, labels = c("Recent \n early-season","Recent \n late-season","Old \n late-season","Long \n unburned"), srt = 60, pos = 1, xpd = NA)
+text(-.75, .4, expression(paste("Carbon ( kg C ",m^-2,")")),cex=1.25,xpd = NA, srt = 90)
 axis(1,yaxs="r",mgp=c(2,0.5,0),at=c(0.4,4),labels=NA, las=1, col = "black", cex =1.15,col.axis = "black", cex.axis=1.1, lwd =1.5, tck=0.00)
 axis(2, las=2,lwd =1.5, tck=-0.02)
 axis(2,yaxs="r",mgp=c(2,0.5,0),at=seq(-.03,.8,.2),labels=NA, las=2, col = "black", cex =1.15,col.axis = "black", cex.axis=1.1, lwd =1.5, tck=0.00)
@@ -404,7 +407,7 @@ points(GhanaCabovelitterX$Burn_history , GhanaCabovelitterX$x, col =c("light gre
 
 # Axes
 axis(1, cex =.9,las=1,lwd =1.5, tck=-0.02,at=c(1:4),labels=c("","","",""))
-text(seq(1, 4, by=1), par("usr")[3] -.015, labels = c("Recent \n early","Recent \n late","Old late","Long \n unburnt"), srt = 45, pos = 1, xpd = NA)
+text(seq(1, 4, by=1), par("usr")[3] -.032, labels = c("Recent \n early-season","Recent \n late-season","Old \n late-season","Long \n unburned"), srt = 60, pos = 1, xpd = NA)
 axis(1,yaxs="r",mgp=c(2,0.5,0),at=c(0.35,4),labels=NA, las=1, col = "black", cex =1.15,col.axis = "black", cex.axis=1.1, lwd =1.5, tck=0.00)
 axis(2, las=2,lwd =1.5, tck=-0.02)
 axis(2,yaxs="r",mgp=c(2,0.5,0),at=seq(-.008,.2,.2),labels=NA, las=2, col = "black", cex =1.15,col.axis = "black", cex.axis=1.1, lwd =1.5, tck=0.00)
@@ -416,12 +419,12 @@ par(xpd=T)
 
 #Xlab
 par(xpd=NA)
-text(2,-.12,"Fire history", cex=1.25)
+text(2,-.13,"Burn season and history", cex=1.25)
 par(xpd=T)
 
 # Plot legend outside last panel
 par(xpd=NA) 
-legend(6, .2,legend=c("Recent early","Recent late","Old late","Long unburnt"), pch =c(21,21,22,22), col =c("light green","black", "tan4", "dark green"),
+legend(6, .2,legend=c("Recent early-season","Recent late-season","Old late-season","Long unburned"), pch =c(21,21,22,22), col =c("light green","black", "tan4", "dark green"),
        pt.lwd =2, pt.bg = c("light green","white", "white", "dark green"),cex=1.15, pt.cex =2.5, y.intersp = 1.4, bty="n")
 par(xpd=T) 
 
@@ -511,10 +514,14 @@ bp5 <- merge(bp4,bpgroupSE)
 #abbp1$pool_code<-as.factor(with(abbp1, paste(Burn_history , Pool, sep="")))
 
 # Reorder factors
-# Reorder fire history and season # "Recent early","Recent late", "Old late", "Unburnt"
-ab5$Burn_history  <- factor(ab5$Burn_history  , levels = c("Recent early","Recent late", "Old late", "Unburnt"))
-bp5$Burn_history  <- factor(bp5$Burn_history  , levels = c("Recent early","Recent late", "Old late", "Unburnt"))
-#abbp1$Burn_history  <- factor(abbp1$Burn_history  , levels = c("Recent early","Recent late", "Old late", "Unburnt"))
+# Reorder fire history and season # "Recent early","Recent late", "Old late", "Long unburned"
+ab5$Burn_history<-as.factor(ab5$Burn_history)
+bp5$Burn_history<-as.factor(bp5$Burn_history)
+levels(ab5$Burn_history)<-c("Old \n late-season","Recent \n early-season","Recent \n late-season","Long \n unburned")
+levels(bp5$Burn_history)<-c("Old \n late-season","Recent \n early-season","Recent \n late-season","Long \n unburned")
+ab5$Burn_history  <- factor(ab5$Burn_history  , levels = c("Recent \n early-season","Recent \n late-season","Old \n late-season","Long \n unburned"))
+bp5$Burn_history  <- factor(bp5$Burn_history  , levels = c("Recent \n early-season","Recent \n late-season","Old \n late-season","Long \n unburned"))
+#abbp1$Burn_history  <- factor(abbp1$Burn_history  , levels = c("Recent early","Recent late", "Old late", "Long unburned"))
 # Reorder aboveground pools
 #shrubs, then herb veg and then litter+deadwood.
 levels(ab5$Pool)
@@ -571,13 +578,13 @@ ab5
 # Plot aboveground C
 ap <- ggplot(data=ab5, aes(x=Burn_history , y=C.stock.kg.m2))
 ap<- ap+ geom_bar(aes(fill=Pool),stat="identity", show.legend=T)
-ap<- ap+ scale_fill_grey(start = 0.90, end = 0.65)
+ap<- ap+ scale_fill_grey("Aboveground pool",start = 0.90, end = 0.65)
 ap<- ap+ geom_hline(yintercept=0,size=1.15)
 #ap<- ap+ scale_fill_manual(values=c(ab5$pt.col))
 ap<- ap+ scale_y_continuous(breaks=c(0,2,4), expand = c(0, 0),limits=c(0, 5.5))
 ap<-ap+geom_errorbar(aes(x=Burn_history ,ymin=mean-SE, ymax=mean+SE),
                      size=0.5, width=.2,show.legend=F)
-ap <- ap + xlab("") + ylab(expression(paste("Carbon ( kg ",m^-2,")")))
+ap <- ap + xlab("") + ylab(expression(paste("Carbon ( kg C ",m^-2,")")))
 ap <- ap + theme_bw() +
   theme(plot.background = element_blank()
         #,panel.grid.major = element_blank()
@@ -594,6 +601,8 @@ ap <- ap + theme_bw() +
         #,axis.text.y=element_text(hjust=-.4) # HACK MESSY!
         ,axis.line.y = element_line(color="black", size = .25)
         ,legend.position = "right"
+        ,legend.justification = "center"
+        ,legend.title=element_text(size=13)
         #,legend.position=c(.25, .8)
         ,plot.margin = unit(c(5,8.5,-4.7,5), "mm")) # 8 expanded right margin
 #ap <- ap + guides(fill=guide_legend(title="Aboveground pools"))
@@ -606,7 +615,6 @@ ap
 gt <- ggplot_gtable(ggplot_build(ap)) # Turn off clippig = annotate works
 gt$layout$clip[gt$layout$name == "panel"] <- "off"
 grid.draw(gt)
-
 
 # Plot belowground C
 bp <- ggplot(data=bp5, aes(x=Burn_history , y=C.density))
@@ -636,9 +644,11 @@ bp <- bp + theme_bw() +
         #,axis.text.y=element_text(hjust=-.4) # HACK MESSY!
         ,axis.line.y = element_line(color="black", size = .25)
         ,legend.position="right"
+        ,legend.justification = "center"
+        ,legend.title=element_text(size=13)
         #,legend.position=c(.75, 1.8)
         ,plot.margin = unit(c(-1.45,8.5,5,5), "mm"))
-bp <- bp + guides(fill=guide_legend(title="Soil horizons",reverse=TRUE)) # Need to reverse the legend
+bp <- bp + guides(fill=guide_legend(title="Soil layers",reverse=TRUE)) # Need to reverse the legend
 #bp <- bp + guides(fill=guide_legend(title="Aboveground pools"))
 #bp <- bp + annotate(geom="text", x=4.75, y=2, label="2 cm",color="black")
 #bp <- bp + annotate(geom="text", x=4.75, y=3.8, label="7 cm",color="black")
@@ -652,7 +662,7 @@ grid.draw(bt)
 #library(grid)
 filename <- paste0("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/Fire_in_the_Mole/Figures/", "EcoC_Ghana.stackbar.BWpool",
                    "_",Sys.Date(), ".jpeg" )
-jpeg (filename, width=15, height=20, res=400, unit="cm")
+jpeg (filename, width=17.5, height=21, res=400, unit="cm")
 
 grid.newpage()
 #grid.draw(rbind(ggplotGrob(ap), ggplotGrob(bp), size = "last"))

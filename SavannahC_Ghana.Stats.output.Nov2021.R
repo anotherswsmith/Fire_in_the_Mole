@@ -419,11 +419,11 @@ mean((((OldLateO-OldLateN)/OldLateO)*100)$C.density)
 ################################################################
 
 # Import data - above C storage data for Ghana
-GhanaCabove<-read.csv("Fire_in_the_Mole/Ghana.aboveground.copy.csv", sep=",",header=TRUE)
+GhanaCabove<-read.csv("./Ghana.aboveground.copy.csv", sep=",",header=TRUE)
 names(GhanaCabove)
 
 # Import data -Belowground C storage
-GhanaCbelow<-read.csv("Fire_in_the_Mole/Ghana.belowground_correct.csv", sep=",",header=TRUE)
+GhanaCbelow<-read.csv("./Ghana.belowground_correct.csv", sep=",",header=TRUE)
 names(GhanaCbelow)
 head(GhanaCbelow)
 
@@ -478,8 +478,24 @@ test5 <- emmeans(GhanaCmixedEco,~Burn_history)
 test5<-contrast(regrid(test5),method = "pairwise")
 test5 # None significant
 
+# Plot ecosystem carbon by year
+head(GhanaCabove2L)
+GhanaCabove2L$Burn_history
+GhanaCabove2L$Burn_year<-as.numeric(gsub(".*?([0-9]+).*", "\\1", GhanaCabove2L$Location))
+GhanaCabove2L$Burn_year[GhanaCabove2L$Burn_year<10]<-2000
+GhanaCabove2L$Burn_history<-as.factor(GhanaCabove2L$Burn_history)
+levels(GhanaCabove2L$Burn_history)<-c("Long unburned","Old late-season","Recent early-season","Recent late-season")
+ggplot(GhanaCabove2L,aes(y=C.stock.kg.m2, x=Burn_year))+
+  geom_point(aes(fill=Burn_history,col=Burn_history),shape=21, size=2.5, stroke=1)+
+  xlab("Burn year")+ylab(expression(paste("Aboveground carbon ( kg ",m^-2,")")))+
+  theme_classic()
+
+setwd("/Users/stuartsmith/Documents/AfricanBioServices/Masters/Joana Awuah/")
+ggsave("Fire_in_the_Mole/Figures/Aboveground_carbon_burn_year.jpeg", width= 14, height = 10,units ="cm",
+       dpi = 400, limitsize = TRUE)
+
 #######################################################################################
-#### Tree and shrub densities and allometerics in relationship soil carbon ####
+#### Tree and shrub densities and allometeric in relationship soil carbon ####
 #######################################################################################
 # Import data - Tree shrub data
 
