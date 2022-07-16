@@ -13,7 +13,7 @@ require(reshape2)
 #########################################################################################################################
 
 ##### IMPORT DATASET called 'Ghana.belowground' ##############
-df <- read.csv("./Ghana.belowground_correct.csv", sep=",",header=TRUE)
+df <- read.csv("./Ghana.belowground_correct_BD.csv", sep=",",header=TRUE)
 df$Burn_history <- as.factor(df$Burn_history )
 #Levels: Old late, Recent early, Recent late, Long uburned
 
@@ -188,15 +188,15 @@ GhanaCaboveTreeSE<-aggregate(GhanaCaboveTree$C.stock.kg.m2,by=list(Burn_history 
 #Shrub
 GhanaCaboveShrubX<-aggregate(GhanaCaboveShrub$C.stock.kg.m2,by=list(Burn_history =GhanaCaboveShrub$Burn_history ),na.rm=T,mean)
 GhanaCaboveShrubSE<-aggregate(GhanaCaboveShrub$C.stock.kg.m2,by=list(Burn_history =GhanaCaboveShrub$Burn_history ),sd)
-#Deadwood
-GhanaCabovelitterX<-aggregate(GhanaCabovelitter$C.stock.kg.m2,by=list(Burn_history =GhanaCabovelitter$Burn_history ),na.rm=T,mean)
-GhanaCabovelitterSE<-aggregate(GhanaCabovelitter$C.stock.kg.m2,by=list(Burn_history =GhanaCabovelitter$Burn_history ),sd)
-#litter
-GhanaCaboveDeadwoodX<-aggregate(GhanaCaboveDeadwood$C.stock.kg.m2,by=list(Burn_history =GhanaCaboveDeadwood$Burn_history ),na.rm=T,mean)
-GhanaCaboveDeadwoodSE<-aggregate(GhanaCaboveDeadwood$C.stock.kg.m2,by=list(Burn_history =GhanaCaboveDeadwood$Burn_history ),sd)
 #Herbveg
 GhanaCaboveHerbvegX<-aggregate(GhanaCaboveHerbveg$C.stock.kg.m2,by=list(Burn_history =GhanaCaboveHerbveg$Burn_history ),na.rm=T,mean)
 GhanaCaboveHerbvegSE<-aggregate(GhanaCaboveHerbveg$C.stock.kg.m2,by=list(Burn_history =GhanaCaboveHerbveg$Burn_history ),sd)
+#Deadwood
+GhanaCaboveDeadwoodX<-aggregate(GhanaCaboveDeadwood$C.stock.kg.m2,by=list(Burn_history =GhanaCaboveDeadwood$Burn_history ),na.rm=T,mean)
+GhanaCaboveDeadwoodSE<-aggregate(GhanaCaboveDeadwood$C.stock.kg.m2,by=list(Burn_history =GhanaCaboveDeadwood$Burn_history ),sd)
+#Litter
+GhanaCabovelitterX<-aggregate(GhanaCabovelitter$C.stock.kg.m2,by=list(Burn_history =GhanaCabovelitter$Burn_history ),na.rm=T,mean)
+GhanaCabovelitterSE<-aggregate(GhanaCabovelitter$C.stock.kg.m2,by=list(Burn_history =GhanaCabovelitter$Burn_history ),sd)
 
 # Produce a graphic file for the image file
 #filename <- paste0("/Users/anotherswsmith/Documents/AfricanBioServices/Master projects/Joana Awuah Adofo/", "Aboveground.C.graph1", "_",Sys.Date(), ".jpeg" )
@@ -447,7 +447,7 @@ SE<- function(x) sqrt(var(x,na.rm=TRUE)/length(na.omit(x)))
 # Import data - above C storage data for Ghana
 GhanaCabove<-read.csv("./Ghana.aboveground.copy.csv", sep=",",header=TRUE)
 # Import data -Belowground C storage
-GhanaCbelow<-read.csv("./Ghana.belowground_correct.csv", sep=",",header=TRUE)
+GhanaCbelow<-read.csv("./Ghana.belowground_correct_BD.csv", sep=",",header=TRUE)
 
 # Total above and below C stocks
 aboveC<-aggregate(GhanaCabove$C.stock.kg.m2, by=list(Burn_history =GhanaCabove$Burn_history ,Location=GhanaCabove$Location),na.rm=T,sum)

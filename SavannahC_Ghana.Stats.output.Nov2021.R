@@ -272,7 +272,7 @@ lsmeans(GhanaCmixedAbove, pairwise~Burn_history|Pool, adjust="Tukey")$contrasts
 ################################################################
 
 # Import data - belowground C storage data for Ghana
-GhanaC<-read.csv("./Ghana.belowground_correct.csv", sep=",",header=TRUE)
+GhanaC<-read.csv("./Ghana.belowground_correct_BD.csv", sep=",",header=TRUE)
 
 dim(GhanaC) # 109 rows # 6 columns
 str(GhanaC)
@@ -356,7 +356,7 @@ exp(estimatesfixedeffects)
 
 #### LMM: Belowground mixed effect model ###
 GhanaCmixed<-lmer(C.density~Burn_history+Horizon+Horizon/Burn_history+(1|clust),na.action=na.omit, data = GhanaCbelow, REML=T)
-summary(GhanaCmixed)
+summary(GhanaCmixed) 
 vcov(GhanaCmixed) # Horizon comparison across burn histories 	
 anova(GhanaCmixed) # Burn history and horizon significant
 
@@ -378,12 +378,16 @@ GhanaCmixed4<-lmer(C.density~Horizon+(1|clust),na.action=na.omit, data = GhanaCb
 
 anova(GhanaCmixed,GhanaCmixed2) # NS
 anova(GhanaCmixed2,GhanaCmixed3) # Horizon significant
-anova(GhanaCmixed2,GhanaCmixed4) # Burn history significant
+anova(GhanaCmixed2,GhanaCmixed4) # Burn history significant - driven by recent late
 
 # Contrasts
 lsmeans(GhanaCmixed, pairwise~Burn_history, adjust="Tukey")$contrasts
 lsmeans(GhanaCmixed, pairwise~Horizon, adjust="Tukey")$contrasts
 lsmeans(GhanaCmixed, pairwise~Burn_history|Horizon, adjust="Tukey")$contrasts
+
+# Test without interaction
+lsmeans(GhanaCmixed2, pairwise~Burn_history, adjust="Tukey")$contrasts
+# Unburnt vs recent early still significant
 
 # Contrasts (emmeans)
 #library(emmeans)
