@@ -188,10 +188,11 @@ sim_pool_burn # 100% power
 # Plotting 
 #m1_as <- simr::extend(m1, along="site", n=30)
 #pcAbove<-simr::powerCurve(m1_as, test = fcompare(y ~ Burn_history+Pool),
-#                      along="site",nsim=100)
+#                      along="site",nsim=10) # nsim=1000
+#plot(pcAbove, power=.9)
 #filenameAbove <- paste0("./Figures/", "Power_analysis_aboveground_carbon", ".jpeg" )
 #jpeg(filenameAbove ,width= 12, height = 10,units ="cm",bg ="transparent", res = 800)
-#plot(pcAbove)
+#plot(pcAbove, power=.9)
 #dev.off()
 
 # extract fixed effect estimates
